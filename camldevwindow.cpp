@@ -10,7 +10,7 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->unsavedChanges = false;
     this->programTitle = "CamlDev alpha";
     /* The window title and icon */
-    this->setWindowTitle(this->programTitle + " - " + "unitled");
+    this->setWindowTitle(this->programTitle + " - " + "untitled");
     this->setWindowIcon(QIcon(":/progicon.png"));
 
     /* The main window elements : two text-areas and a splitter */
@@ -326,7 +326,7 @@ void CamlDevWindow::newFile()
     this->currentFile = "";
 
     this->outputZone->clear();
-    this->setWindowTitle(this->programTitle + " - " + "unitled");
+    this->setWindowTitle(this->programTitle + " - " + "untitled");
     while(camlProcess->state() != QProcess::NotRunning)
     {
         camlProcess->close();
@@ -344,14 +344,14 @@ bool CamlDevWindow::exitCurrentFile()
     if(!unsavedChanges) return true;
     else
     {
-        int btn = QMessageBox::question(this,"Save changes before closing?","Your changes have not been saved! Would you like to do that now?",QMessageBox::Yes,QMessageBox::No,QMessageBox::Cancel);
+        int btn = QMessageBox::question(this,"Save changes before closing?","Your changes have not been saved! Would you like to do that now?",QMessageBox::Save,QMessageBox::Discard,QMessageBox::Cancel);
         bool ret = false;
         switch(btn)
         {
 
-        case QMessageBox::Yes:
+        case QMessageBox::Save:
             ret = this->save(); break;
-        case QMessageBox::No:
+        case QMessageBox::Discard:
             ret = true; break;
         case QMessageBox::Cancel:
             ret = false; break;
