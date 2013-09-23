@@ -12,6 +12,9 @@ public:
     void keyPressEvent(QKeyEvent *event);
 signals:
     void controlEnterPressed();
+    void controlSPressed();
+    void controlOPressed();
+    void controlPPressed();
 public slots:
     
 };

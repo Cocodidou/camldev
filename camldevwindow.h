@@ -48,12 +48,19 @@ private:
     QAction *actionShowSettings;
     QAction *actionClearOutput;
     QAction *actionAutoIndent;
+    QAction *actionUndo;
+    QAction *actionRedo;
+    QAction *actionDelete;
+    QAction *actionChangeInputFont;
+    QAction *actionChangeOutputFont;
+    QAction *actionAbout;
     QMenu *menuFile;
     QMenu *menuEdit;
     QMenu *menuCaml;
     QMenu *menuHelp;
     QProcess *camlProcess;
-
+    QSettings *settings;
+    QPrinter *printer;
 
 signals:
     
@@ -70,6 +77,9 @@ public slots:
     void newFile();
     void readCamlErrors();
     void print();
+    void changeInputFont();
+    void changeOutputFont();
+    void doPrint();
 };
 
 #endif // CAMLDEVWINDOW_H

@@ -8,19 +8,33 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->camlStarted = false;
     this->currentFile = "";
     this->unsavedChanges = false;
-    this->programTitle = "CamlDev alpha";
+    this->programTitle = "LemonCaml";
     /* The window title and icon */
     this->setWindowTitle(this->programTitle + " - " + "untitled");
     this->setWindowIcon(QIcon(":/progicon.png"));
 
+    this->settings = new QSettings("Cocodidou", "LemonCaml");
+    
     /* The main window elements : two text-areas and a splitter */
     this->split = new QSplitter(Qt::Horizontal,this);
     this->inputZone = new InputZone();
     this->inputZone->setTabStopWidth(20);
     this->inputZone->setAcceptRichText(false);
+    
+    QString iFont = settings->value("Input/Font", "").toString();
+    QFont inputFont;
+    inputFont.fromString(iFont);
+    this->inputZone->setFont(inputFont);
+    
     this->outputZone = new QTextEdit(this);
     this->outputZone->setReadOnly(true);
     this->outputZone->setTabStopWidth(20);
+    
+    QString oFont = settings->value("Output/Font", "").toString();
+    QFont outputFont;
+    outputFont.fromString(oFont);
+    this->outputZone->setFont(outputFont);
+    
     this->setCentralWidget(split);
 
 
@@ -28,6 +42,9 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     split->addWidget(this->outputZone);
     split->showMaximized();
 
+    /* the printer*/
+    this->printer = new QPrinter(QPrinter::HighResolution);
+    
     /* The actions */
     this->actionNew = new QAction("New",this);
     this->actionNew->setIcon(QIcon(":/new.png"));
@@ -44,12 +61,20 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->actionQuit = new QAction("Quit",this);
     this->actionQuit->setIcon(QIcon(":/exit.png"));
 
+    this->actionUndo = new QAction("Undo",this);
+    this->actionRedo = new QAction("Redo",this);
+    this->actionDelete = new QAction("Delete",this);
+    this->actionChangeInputFont = new QAction("Change Input Font",this);
+    this->actionChangeOutputFont = new QAction("Change Output Font",this);
+
     this->actionSendCaml = new QAction("Send Code to Caml",this);
     this->actionSendCaml->setIcon(QIcon(":/sendcaml.png"));
     this->actionInterruptCaml = new QAction("Interrupt Caml",this);
     this->actionInterruptCaml->setIcon(QIcon(":/interrupt.png"));
     this->actionStopCaml = new QAction("Stop Caml",this);
     this->actionStopCaml->setIcon(QIcon(":/stopcaml.png"));
+
+    this->actionAbout = new QAction("Demmerdez-vous",this);
 
     /* The toolbar */
     this->toolbar = new QToolBar("Tools",this);
@@ -58,6 +83,9 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->toolbar->addAction(actionSave);
     this->toolbar->addAction(actionSaveAs);
     this->toolbar->addAction(actionPrint);
+    this->toolbar->addSeparator();
+    this->toolbar->addAction(actionUndo);
+    this->toolbar->addAction(actionRedo);
     this->toolbar->addSeparator();
     this->toolbar->addAction(actionSendCaml);
     this->toolbar->addAction(actionInterruptCaml);
@@ -73,8 +101,14 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->menuFile->addAction(actionQuit);
 
     this->menuEdit = this->menuBar()->addMenu("Edit");
+    this->menuEdit->addAction(actionUndo);
+    this->menuEdit->addAction(actionRedo);
+    this->menuEdit->addAction(actionDelete);
+    this->menuEdit->addSeparator();
     this->menuEdit->addAction(actionAutoIndent);
     this->menuEdit->addAction(actionClearOutput);
+    this->menuEdit->addAction(actionChangeInputFont);
+    this->menuEdit->addAction(actionChangeOutputFont);
 
     this->menuCaml = this->menuBar()->addMenu("Caml");
     this->menuCaml->addAction(actionSendCaml);
@@ -82,6 +116,7 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->menuCaml->addAction(actionStopCaml);
 
     this->menuHelp = this->menuBar()->addMenu("Help");
+    this->menuHelp->addAction(this->actionAbout);
 
     /* Connections */
     connect(actionSendCaml,SIGNAL(triggered()),this,SLOT(sendCaml()));
@@ -91,14 +126,23 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     connect(camlProcess,SIGNAL(started()),this,SLOT(camlOK()));
     connect(actionInterruptCaml,SIGNAL(triggered()),this,SLOT(interruptCaml()));
     connect(inputZone,SIGNAL(controlEnterPressed()),this,SLOT(sendCaml()));
+    connect(inputZone,SIGNAL(controlSPressed()),this,SLOT(save()));
+    connect(inputZone,SIGNAL(controlOPressed()),this,SLOT(open()));
+    connect(inputZone,SIGNAL(controlPPressed()),this,SLOT(print()));
     connect(actionSave,SIGNAL(triggered()),this,SLOT(save()));
     connect(actionSaveAs,SIGNAL(triggered()),this,SLOT(saveAs()));
     connect(actionOpen,SIGNAL(triggered()),this,SLOT(open()));
     connect(inputZone,SIGNAL(textChanged()),this,SLOT(textChanged()));
     connect(actionNew,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(actionClearOutput,SIGNAL(triggered()),this->outputZone,SLOT(clear()));
+    connect(actionChangeInputFont,SIGNAL(triggered()),this,SLOT(changeInputFont()));
+    connect(actionChangeOutputFont,SIGNAL(triggered()),this,SLOT(changeOutputFont()));
     connect(actionQuit,SIGNAL(triggered()),this,SLOT(close()));
     connect(actionPrint,SIGNAL(triggered()),this,SLOT(print()));
+    connect(actionUndo,SIGNAL(triggered()),this->inputZone,SLOT(undo()));
+    connect(actionRedo,SIGNAL(triggered()),this->inputZone,SLOT(redo()));
+    connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
+
     this->startCamlProcess();
 }
 
@@ -270,8 +314,8 @@ void CamlDevWindow::open()
     QString fileName = QFileDialog::getOpenFileName(this,"Open","");
     if(!fileName.isEmpty())
     {
-        currentFile = fileName;
-        openFile(currentFile);
+        //currentFile = fileName;
+        openFile(fileName);
     }
 
 }
@@ -284,10 +328,12 @@ void CamlDevWindow::openFile(QString file)
         QMessageBox::warning(this,"Warning","Unable to open file !!");
         return;
     }
+    //QString curFile = currentFile;
     this->newFile(); //clear everything
+    currentFile = file; //restore filename
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     inputZone->clear();
-    inputZone->append(codec->toUnicode(f.readAll()));
+    inputZone->setText(codec->toUnicode(f.readAll()));
     this->setWindowTitle(this->programTitle + " - " + f.fileName());
     this->unsavedChanges = false;
     QTextCursor cursor = inputZone->textCursor();
@@ -324,7 +370,6 @@ void CamlDevWindow::newFile()
     this->inputZone->clear();
     this->unsavedChanges = false;
     this->currentFile = "";
-
     this->outputZone->clear();
     this->setWindowTitle(this->programTitle + " - " + "untitled");
     while(camlProcess->state() != QProcess::NotRunning)
@@ -370,5 +415,25 @@ void CamlDevWindow::closeEvent(QCloseEvent *event)
 
 void CamlDevWindow::print()
 {
-    //Stub.
+    QPrintDialog dlg(printer, this);
+    dlg.open(this, SLOT(doPrint()));
+}
+
+void CamlDevWindow::changeInputFont()
+{
+    this->inputZone->setFont(QFontDialog::getFont(0, inputZone->font()));
+    QFont fnt = inputZone->font();
+    settings->setValue("Input/Font", fnt.toString());
+}
+
+void CamlDevWindow::changeOutputFont()
+{
+    this->outputZone->setFont(QFontDialog::getFont(0, outputZone->font()));
+    QFont fnt = outputZone->font();
+    settings->setValue("Output/Font", fnt.toString());
+}
+
+void CamlDevWindow::doPrint()
+{
+    this->inputZone->print(printer); 
 }
