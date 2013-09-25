@@ -16,12 +16,14 @@ TEMPLATE = app
 SOURCES += main.cpp \
     camldevwindow.cpp \
     camldevsettings.cpp \
-    inputzone.cpp
+    inputzone.cpp \
+    highlighter.cpp
 
 HEADERS += \
     camldevwindow.h \
     camldevsettings.h \
-    inputzone.h
+    inputzone.h \
+    highlighter.h
 
 RESOURCES += \
     icons.qrc

@@ -7,10 +7,13 @@
 #include <QMessageBox>
 #include <QTextCodec>
 #include "inputzone.h"
+#include "highlighter.h"
 #ifndef WIN32
 #include "unistd.h"
 #include "signal.h"
 #endif
+
+
 class CamlDevWindow : public QMainWindow
 {
     Q_OBJECT
@@ -30,6 +33,7 @@ public:
     QString currentFile;
     bool exitCurrentFile();
     void closeEvent(QCloseEvent *event);
+
 
 private:
     InputZone *inputZone;
@@ -61,6 +65,7 @@ private:
     QProcess *camlProcess;
     QSettings *settings;
     QPrinter *printer;
+    highlighter *hilit;
 
 signals:
     

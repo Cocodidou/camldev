@@ -21,6 +21,8 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->inputZone->setTabStopWidth(20);
     this->inputZone->setAcceptRichText(false);
     
+
+    
     QString iFont = settings->value("Input/Font", "").toString();
     QFont inputFont;
     inputFont.fromString(iFont);
@@ -29,6 +31,9 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->outputZone = new QTextEdit(this);
     this->outputZone->setReadOnly(true);
     this->outputZone->setTabStopWidth(20);
+    
+    this->hilit = new highlighter(inputZone->document());
+    
     
     QString oFont = settings->value("Output/Font", "").toString();
     QFont outputFont;
