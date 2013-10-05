@@ -10,5 +10,7 @@
         <file>interrupt.png</file>
         <file>saveas.png</file>
         <file>progicon.png</file>
+        <file>undo.png</file>
+        <file>redo.png</file>
     </qresource>
 </RCC>

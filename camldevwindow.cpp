@@ -67,7 +67,9 @@ CamlDevWindow::CamlDevWindow(QWidget *parent) :
     this->actionQuit->setIcon(QIcon(":/exit.png"));
 
     this->actionUndo = new QAction("Undo",this);
+    this->actionUndo->setIcon(QIcon(":/undo.png"));
     this->actionRedo = new QAction("Redo",this);
+    this->actionRedo->setIcon(QIcon(":/redo.png"));
     this->actionDelete = new QAction("Delete",this);
     this->actionChangeInputFont = new QAction("Change Input Font",this);
     this->actionChangeOutputFont = new QAction("Change Output Font",this);
