@@ -1,12 +1,13 @@
 #include "camldevwindow.h"
 
-CamlDevWindow::CamlDevWindow(QWidget *parent) :
+CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     QMainWindow(parent)
 {
 
     this->camlProcess = new QProcess(this);
     this->camlStarted = false;
     this->currentFile = "";
+    this->cwd = wd;
     this->unsavedChanges = false;
     this->programTitle = "LemonCaml";
     /* The window title and icon */
@@ -162,8 +163,13 @@ CamlDevWindow::~CamlDevWindow()
 bool CamlDevWindow::startCamlProcess()
 {
     /* Start the Caml process */
+#ifdef WIN32
+    camlProcess->setWorkingDirectory("./caml/");
+    camlProcess->start("\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "CamlLightToplevel.exe" + "\"");
+#else
     camlProcess->setWorkingDirectory("./caml/");
     camlProcess->start("./CamlLightToplevel");
+#endif
     return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
 }
 

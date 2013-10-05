@@ -18,7 +18,7 @@ class CamlDevWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit CamlDevWindow(QWidget *parent = 0);
+    explicit CamlDevWindow(QString wd = "", QWidget *parent = 0);
     ~CamlDevWindow();
     QString programTitle;
     bool startCamlProcess();
@@ -66,6 +66,7 @@ private:
     QSettings *settings;
     QPrinter *printer;
     highlighter *hilit;
+    QString cwd;
 
 signals:
     

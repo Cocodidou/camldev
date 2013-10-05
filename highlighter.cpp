@@ -1,4 +1,4 @@
-#include <highlighter.h>
+#include "highlighter.h"
 
 highlighter::highlighter(QTextDocument *document)
 : QSyntaxHighlighter(document)
