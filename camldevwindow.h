@@ -8,6 +8,7 @@
 #include <QTextCodec>
 #include "inputzone.h"
 #include "highlighter.h"
+#include "camldevsettings.h"
 #ifndef WIN32
 #include "unistd.h"
 #include "signal.h"
@@ -86,6 +87,7 @@ public slots:
     void changeInputFont();
     void changeOutputFont();
     void doPrint();
+    void showSettings();
 };
 
 #endif // CAMLDEVWINDOW_H

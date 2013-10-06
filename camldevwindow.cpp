@@ -81,6 +81,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->actionInterruptCaml->setIcon(QIcon(":/interrupt.png"));
     this->actionStopCaml = new QAction("Stop Caml",this);
     this->actionStopCaml->setIcon(QIcon(":/stopcaml.png"));
+    this->actionShowSettings = new QAction("Settings",this);
 
     this->actionAbout = new QAction("Demmerdez-vous",this);
 
@@ -122,6 +123,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->menuCaml->addAction(actionSendCaml);
     this->menuCaml->addAction(actionInterruptCaml);
     this->menuCaml->addAction(actionStopCaml);
+    this->menuCaml->addAction(actionShowSettings);
 
     this->menuHelp = this->menuBar()->addMenu("Help");
     this->menuHelp->addAction(this->actionAbout);
@@ -150,6 +152,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     connect(actionUndo,SIGNAL(triggered()),this->inputZone,SLOT(undo()));
     connect(actionRedo,SIGNAL(triggered()),this->inputZone,SLOT(redo()));
     connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
+    connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
 
     this->startCamlProcess();
 }
@@ -164,11 +167,15 @@ bool CamlDevWindow::startCamlProcess()
 {
     /* Start the Caml process */
 #ifdef WIN32
-    camlProcess->setWorkingDirectory("./caml/");
-    camlProcess->start("\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "CamlLightToplevel.exe" + "\"");
+    QString camlLibPath = settings->value("General/stdlibPath", "\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "lib" + "\"").toString();
+    //camlProcess->setWorkingDirectory(camlLibPath);
+    QString camlProcessPath = settings->value("General/camlPath", "\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "CamlLightToplevel.exe" + "\"").toString();
+    camlProcess->start(camlProcessPath + " -stdlib \"" + camlLibPath + "\"");
 #else
-    camlProcess->setWorkingDirectory("./caml/");
-    camlProcess->start("./CamlLightToplevel");
+    QString camlLibPath = settings->value("General/stdlibPath", "./caml/lib").toString();
+    //camlProcess->setWorkingDirectory(camlLibPath);
+    QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel").toString();
+    camlProcess->start(camlProcessPath + " -stdlib \"" + camlLibPath + "\"");
 #endif
     return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
 }
@@ -248,11 +255,11 @@ void CamlDevWindow::stopCaml()
 
 void CamlDevWindow::interruptCaml()
 {
-#ifdef WIN32
-    qDebug() << "Not implemented yet";
-#else
-    if(camlStarted) kill(camlProcess->pid(),SIGINT);
-#endif
+  if(camlProcess->state() == QProcess::Running)
+  {
+    camlProcess->terminate();
+    camlProcess->write("\015\012");
+  }
 }
 
 QString CamlDevWindow::removeComments(QString str)
@@ -449,4 +456,10 @@ void CamlDevWindow::changeOutputFont()
 void CamlDevWindow::doPrint()
 {
     this->inputZone->print(printer); 
+}
+
+void CamlDevWindow::showSettings()
+{
+  CamlDevSettings s(this, this->settings);
+  s.exec();
 }
