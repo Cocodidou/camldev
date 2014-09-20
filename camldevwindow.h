@@ -5,7 +5,16 @@
 #include <QtGui>
 #include <QProcess>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QPrintDialog>
+#include <QFontDialog>
+#include <QTextEdit>
+#include <QToolBar>
+#include <QMenuBar>
+#include <QMenu>
 #include <QTextCodec>
+#include <QSplitter>
+#include <QPrinter>
 #include "inputzone.h"
 #include "highlighter.h"
 #include "camldevsettings.h"

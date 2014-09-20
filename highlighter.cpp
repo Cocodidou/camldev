@@ -78,7 +78,15 @@ void highlighter::highlightBlock(const QString &text)
 	    setFormat(pos, 3, m_formats[VariableDec]);
 	    pos += 3;
 	    break;
-	  } else if (text.mid(pos, 2) == "in" && !insideWord(text, pos, 2)) {
+	  } else if (text.mid(pos, 3) == "rec" && !insideWord(text, pos, 3)) {
+       setFormat(pos, 3, m_formats[VariableDec]);
+       pos += 3;
+       break;
+     } else if (text.mid(pos, 9) == "exception" && !insideWord(text, pos, 9)) {
+       setFormat(pos, 9, m_formats[VariableDec]);
+       pos += 3;
+       break;
+     } else if (text.mid(pos, 2) == "in" && !insideWord(text, pos, 2)) {
 	    setFormat(pos, 2, m_formats[VariableDec]);
 	    pos += 2;
 	    break;
@@ -90,7 +98,11 @@ void highlighter::highlightBlock(const QString &text)
 	    setFormat(pos, 2, m_formats[VariableDec]);
 	    pos += 2;
 	    break;
-	  } else if (text.mid(pos, 4) == "true" && !insideWord(text, pos, 4)) {
+	  } else if (text.mid(pos, 4) == "type" && !insideWord(text, pos, 4)) {
+       setFormat(pos, 4, m_formats[VariableDec]);
+       pos += 4;
+       break;
+     } else if (text.mid(pos, 4) == "true" && !insideWord(text, pos, 4)) {
 	    setFormat(pos,  4, m_formats[Boolean]);
 	    pos += 4;
 	    break;
@@ -106,7 +118,15 @@ void highlighter::highlightBlock(const QString &text)
 	    setFormat(pos,  3, m_formats[Loop]);
 	    pos += 3;
 	    break;
-	  }  else if (text.mid(pos, 2) == "do" && !insideWord(text, pos, 2)) {
+	  } else if (text.mid(pos, 3) == "try" && !insideWord(text, pos, 3)) {
+       setFormat(pos,  3, m_formats[Loop]);
+       pos += 3;
+       break;
+     } else if (text.mid(pos, 4) == "with" && !insideWord(text, pos, 4)) {
+       setFormat(pos,  4, m_formats[Loop]);
+       pos += 3;
+       break;
+     } else if (text.mid(pos, 2) == "do" && !insideWord(text, pos, 2)) {
 	    setFormat(pos,  2, m_formats[Loop]);
 	    pos += 2;
 	    break;
@@ -220,14 +240,14 @@ void highlighter::highlightBlock(const QString &text)
 bool highlighter::insideWord(QString str, int start, int len)
 {
   if(start > 0) {
-    char a = str.at(start-1).toAscii();
+    char a = str.at(start-1).toLatin1();
     if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z')) && (a != ' '))
     {
       return true;
     }
   }
   if(start + len <= str.length()) {
-    char a = str.at(start + len).toAscii();
+    char a = str.at(start + len).toLatin1();
     if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z')) && (a != ' '))
     {
       return true;

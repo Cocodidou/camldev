@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core
+QT       += core \
+    widgets \
+    printsupport
 
 TARGET = CamlDev
 

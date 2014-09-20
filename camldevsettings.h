@@ -3,6 +3,11 @@
 
 #include <QDialog>
 #include <QtGui>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <QSettings>
 
 class CamlDevSettings : public QDialog

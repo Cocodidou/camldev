@@ -322,7 +322,7 @@ bool CamlDevWindow::saveFile(QString file)
     }
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     QString output = codec->fromUnicode(inputZone->toPlainText());
-    f.write(output.toAscii());
+    f.write(output.toLatin1());
     f.close();
     this->setWindowTitle(this->programTitle + " - " + f.fileName());
     this->unsavedChanges = false;
@@ -436,7 +436,10 @@ void CamlDevWindow::closeEvent(QCloseEvent *event)
 void CamlDevWindow::print()
 {
     QPrintDialog dlg(printer, this);
-    dlg.open(this, SLOT(doPrint()));
+    //dlg.open(this, SLOT(doPrint()));
+    if (dlg.exec() == QDialog::Accepted) {
+       doPrint();
+    }
 }
 
 void CamlDevWindow::changeInputFont()
