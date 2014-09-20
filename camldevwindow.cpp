@@ -135,10 +135,14 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     connect(actionStopCaml,SIGNAL(triggered()),this,SLOT(stopCaml()));
     connect(camlProcess,SIGNAL(started()),this,SLOT(camlOK()));
     connect(actionInterruptCaml,SIGNAL(triggered()),this,SLOT(interruptCaml()));
+    
     connect(inputZone,SIGNAL(controlEnterPressed()),this,SLOT(sendCaml()));
     connect(inputZone,SIGNAL(controlSPressed()),this,SLOT(save()));
     connect(inputZone,SIGNAL(controlOPressed()),this,SLOT(open()));
     connect(inputZone,SIGNAL(controlPPressed()),this,SLOT(print()));
+    connect(inputZone,SIGNAL(controlPlusPressed()),this,SLOT(zoomIn()));
+    connect(inputZone,SIGNAL(controlMinusPressed()),this,SLOT(zoomOut()));
+    
     connect(actionSave,SIGNAL(triggered()),this,SLOT(save()));
     connect(actionSaveAs,SIGNAL(triggered()),this,SLOT(saveAs()));
     connect(actionOpen,SIGNAL(triggered()),this,SLOT(open()));
@@ -322,7 +326,7 @@ bool CamlDevWindow::saveFile(QString file)
     }
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     QString output = codec->fromUnicode(inputZone->toPlainText());
-    f.write(output.toLatin1());
+    f.write(output.toUtf8());
     f.close();
     this->setWindowTitle(this->programTitle + " - " + f.fileName());
     this->unsavedChanges = false;
@@ -465,4 +469,16 @@ void CamlDevWindow::showSettings()
 {
   CamlDevSettings s(this, this->settings);
   s.exec();
+}
+
+void CamlDevWindow::zoomIn()
+{
+   inputZone->zoomIn();
+   outputZone->zoomIn();
+}
+
+void CamlDevWindow::zoomOut()
+{
+   inputZone->zoomOut();
+   outputZone->zoomOut();
 }

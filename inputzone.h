@@ -15,6 +15,8 @@ signals:
     void controlSPressed();
     void controlOPressed();
     void controlPPressed();
+    void controlPlusPressed();
+    void controlMinusPressed();
 public slots:
     
 };

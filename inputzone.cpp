@@ -24,6 +24,14 @@ void InputZone::keyPressEvent(QKeyEvent *event)
     {
         emit controlPPressed();
     }
+    else if(event->key()== Qt::Key_Plus && event->modifiers() & Qt::ControlModifier)
+    {
+        emit controlPlusPressed();
+    }
+    else if(event->key()== Qt::Key_Minus && event->modifiers() & Qt::ControlModifier )
+    {
+        emit controlMinusPressed();
+    }
     else
     {
         QTextEdit::keyPressEvent( event );

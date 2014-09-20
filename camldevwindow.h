@@ -97,6 +97,8 @@ public slots:
     void changeOutputFont();
     void doPrint();
     void showSettings();
+    void zoomIn();
+    void zoomOut();
 };
 
 #endif // CAMLDEVWINDOW_H
