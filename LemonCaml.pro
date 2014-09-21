@@ -8,7 +8,7 @@ QT       += core \
     widgets \
     printsupport
 
-TARGET = CamlDev
+TARGET = lemoncaml
 
 TEMPLATE = app
 

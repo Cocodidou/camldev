@@ -1,7 +1,7 @@
 camldev
 =======
 
-Oxygen icons are subject to the GPL License. See http://www.oxyegn-icons.org/ for more information.
+Oxygen icons are subject to the GPL License. See http://www.oxygen-icons.org/ for more information.
 
 Before compiling this program, make a subdirectory called "caml", and put the toplevel and its compiled interfaces there. Then, either link or copy the desired toplevel binary to "CamlLightToplevel".
 

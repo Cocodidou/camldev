@@ -1,3 +1,19 @@
+// camldevwindow.h - LemonCaml main window
+// This file is part of LemonCaml - Copyright (C) 2012-2014 Corentin FERRY
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #ifndef CAMLDEVWINDOW_H
 #define CAMLDEVWINDOW_H
 
@@ -42,7 +58,7 @@ public:
     void syntaxingColoration();
     QString currentFile;
     bool exitCurrentFile();
-    void closeEvent(QCloseEvent *event);
+
 
 
 private:
@@ -68,6 +84,7 @@ private:
     QAction *actionChangeInputFont;
     QAction *actionChangeOutputFont;
     QAction *actionAbout;
+    QAction *actionAboutQt;
     QMenu *menuFile;
     QMenu *menuEdit;
     QMenu *menuCaml;
@@ -77,6 +94,9 @@ private:
     QPrinter *printer;
     highlighter *hilit;
     QString cwd;
+    void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent *event);
+    void moveEvent(QMoveEvent * event);
 
 signals:
     
@@ -99,6 +119,9 @@ public slots:
     void showSettings();
     void zoomIn();
     void zoomOut();
+    void about();
+    void aboutQt();
+    
 };
 
 #endif // CAMLDEVWINDOW_H

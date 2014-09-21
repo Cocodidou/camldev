@@ -1,3 +1,19 @@
+// camldevwindow.cpp - LemonCaml main window
+// This file is part of LemonCaml - Copyright (C) 2012-2014 Corentin FERRY
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "camldevwindow.h"
 
 CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
@@ -22,7 +38,9 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->inputZone->setTabStopWidth(20);
     this->inputZone->setAcceptRichText(false);
     
-
+    this->resize(settings->value("Size/y",800).toInt(), settings->value("Size/x",600).toInt());
+    this->move(settings->value("Pos/x",0).toInt(), settings->value("Pos/y",0).toInt());
+    this->setWindowFlags( (windowFlags() | Qt::CustomizeWindowHint));
     
     QString iFont = settings->value("Input/Font", "").toString();
     QFont inputFont;
@@ -83,7 +101,8 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->actionStopCaml->setIcon(QIcon(":/stopcaml.png"));
     this->actionShowSettings = new QAction("Settings",this);
 
-    this->actionAbout = new QAction("Demmerdez-vous",this);
+    this->actionAbout = new QAction("About LemonCaml...",this);
+    this->actionAboutQt = new QAction("About Qt...",this);
 
     /* The toolbar */
     this->toolbar = new QToolBar("Tools",this);
@@ -107,6 +126,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->menuFile->addAction(actionOpen);
     this->menuFile->addAction(actionSave);
     this->menuFile->addAction(actionSaveAs);
+    this->menuFile->addAction(actionPrint);
     this->menuFile->addAction(actionQuit);
 
     this->menuEdit = this->menuBar()->addMenu("Edit");
@@ -126,7 +146,8 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->menuCaml->addAction(actionShowSettings);
 
     this->menuHelp = this->menuBar()->addMenu("Help");
-    this->menuHelp->addAction(this->actionAbout);
+    this->menuHelp->addAction(actionAbout);
+    this->menuHelp->addAction(actionAboutQt);
 
     /* Connections */
     connect(actionSendCaml,SIGNAL(triggered()),this,SLOT(sendCaml()));
@@ -157,6 +178,9 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     connect(actionRedo,SIGNAL(triggered()),this->inputZone,SLOT(redo()));
     connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
     connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
+    
+    connect(actionAbout,SIGNAL(triggered()),this,SLOT(about()));
+    connect(actionAboutQt,SIGNAL(triggered()),this,SLOT(aboutQt()));
 
     this->startCamlProcess();
 }
@@ -481,4 +505,31 @@ void CamlDevWindow::zoomOut()
 {
    inputZone->zoomOut();
    outputZone->zoomOut();
+}
+
+void CamlDevWindow::about()
+{
+   QMessageBox::about(this, "About LemonCaml", "<b>This is LemonCaml, (c) 2012-2014 Corentin FERRY.</b><br />\
+LemonCaml is a simple, basic-featured Caml development environment.<br />\
+It is released under the GPLv3 license; see COPYING for details.");
+   
+}
+
+void CamlDevWindow::aboutQt()
+{
+   QMessageBox::aboutQt(this, "About Qt");
+}
+
+void CamlDevWindow::resizeEvent(QResizeEvent *event)
+{
+   QSize sz = event->size();
+   settings->setValue("Size/y", sz.width());
+   settings->setValue("Size/x", sz.height());
+}
+
+void CamlDevWindow::moveEvent(QMoveEvent *event)
+{
+   QPoint p = event->pos();
+   settings->setValue("Pos/y", p.y());
+   settings->setValue("Pos/x", p.x());
 }
