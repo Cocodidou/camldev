@@ -195,9 +195,9 @@ bool CamlDevWindow::startCamlProcess()
 {
     /* Start the Caml process */
 #ifdef WIN32
-    QString camlLibPath = settings->value("General/stdlibPath", "\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "lib" + "\"").toString();
+    QString camlLibPath = settings->value("General/stdlibPath", "./caml/lib").toString();
     //camlProcess->setWorkingDirectory(camlLibPath);
-    QString camlProcessPath = settings->value("General/camlPath", "\"" + this->cwd + QDir::separator() + "caml" + QDir::separator() + "CamlLightToplevel.exe" + "\"").toString();
+    QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString();
     camlProcess->start(camlProcessPath + " -stdlib \"" + camlLibPath + "\"");
 #else
     QString camlLibPath = settings->value("General/stdlibPath", "./caml/lib").toString();
