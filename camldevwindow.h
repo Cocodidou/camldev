@@ -85,10 +85,14 @@ private:
     QAction *actionChangeOutputFont;
     QAction *actionAbout;
     QAction *actionAboutQt;
+    QAction **recent = NULL;
+    QString* recentFiles;
+    int numRecentFiles;
     QMenu *menuFile;
     QMenu *menuEdit;
     QMenu *menuCaml;
     QMenu *menuHelp;
+    QMenu *menuRecent;
     QProcess *camlProcess;
     QSettings *settings;
     QPrinter *printer;
@@ -97,6 +101,9 @@ private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent(QResizeEvent *event);
     void moveEvent(QMoveEvent * event);
+    void populateRecent();
+    void generateRecentMenu();
+    void updateRecent();
 
 signals:
     
@@ -121,6 +128,7 @@ public slots:
     void zoomOut();
     void about();
     void aboutQt();
+    void openRecent();
     
 };
 

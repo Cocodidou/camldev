@@ -22,6 +22,8 @@ class highlighter : public QSyntaxHighlighter
   
 public:
   enum Construct {
+    BuiltInType,
+    BuiltInFunction,
     VariableDec,
     Loop,
     Comment,

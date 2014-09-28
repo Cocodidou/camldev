@@ -119,11 +119,12 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->toolbar->addAction(actionInterruptCaml);
     this->toolbar->addAction(actionStopCaml);
     this->addToolBar(this->toolbar);
-
+    
     /* The menubar */
     this->menuFile = this->menuBar()->addMenu("File");
     this->menuFile->addAction(actionNew);
     this->menuFile->addAction(actionOpen);
+    this->menuRecent = this->menuFile->addMenu("Recent files");
     this->menuFile->addAction(actionSave);
     this->menuFile->addAction(actionSaveAs);
     this->menuFile->addAction(actionPrint);
@@ -181,7 +182,10 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     
     connect(actionAbout,SIGNAL(triggered()),this,SLOT(about()));
     connect(actionAboutQt,SIGNAL(triggered()),this,SLOT(aboutQt()));
-
+   
+    this->generateRecentMenu();
+    this->populateRecent();
+    
     this->startCamlProcess();
 }
 
@@ -330,7 +334,11 @@ bool CamlDevWindow::saveAs()
         return false;
     }
     currentFile = fileName;
-    return saveFile(currentFile);
+    bool success = saveFile(currentFile);
+    if(success){
+      updateRecent();
+    }
+    return success;
 
 }
 
@@ -370,6 +378,8 @@ void CamlDevWindow::open()
 
 void CamlDevWindow::openFile(QString file)
 {
+    if(!exitCurrentFile()) return;
+    this->unsavedChanges = false;
     QFile f(file);
     if(!f.open(QFile::ReadOnly))
     {
@@ -377,8 +387,10 @@ void CamlDevWindow::openFile(QString file)
         return;
     }
     //QString curFile = currentFile;
+    
     this->newFile(); //clear everything
     currentFile = file; //restore filename
+    updateRecent();
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     inputZone->clear();
     inputZone->setText(codec->toUnicode(f.readAll()));
@@ -493,6 +505,8 @@ void CamlDevWindow::showSettings()
 {
   CamlDevSettings s(this, this->settings);
   s.exec();
+  this->generateRecentMenu();
+  this->populateRecent();
 }
 
 void CamlDevWindow::zoomIn()
@@ -532,4 +546,94 @@ void CamlDevWindow::moveEvent(QMoveEvent *event)
    QPoint p = event->pos();
    settings->setValue("Pos/y", p.y());
    settings->setValue("Pos/x", p.x());
+}
+
+void CamlDevWindow::generateRecentMenu()
+{
+   
+   if(this->recent != NULL)
+   {
+      for(int i = 0; i < numRecentFiles; i++)
+      {
+         delete recent[i];
+         
+      }
+      delete[] this->recent;
+      delete[] this->recentFiles;
+   }
+   
+   numRecentFiles = settings->value("Recent/number", 5).toInt();
+   this->recent = new QAction*[numRecentFiles];
+   this->recentFiles = new QString[numRecentFiles];
+   for(int i = 0; i < numRecentFiles; i++)
+   {
+      recent[i] = new QAction("(empty)", this);
+      this->menuRecent->addAction(recent[i]);
+   }
+}
+
+void CamlDevWindow::populateRecent()
+{
+   //int fileCount = settings->value("Recent/number", 5).toInt();
+   for(int i = 0; i < numRecentFiles; i++)
+   {
+      QString loc = settings->value("Recent/file" + QString(i), "").toString();
+      if(loc != "")
+      {
+         recentFiles[i] = loc;
+         recent[i]->setText(loc);
+         connect(recent[i], SIGNAL(triggered()), this, SLOT(openRecent()));
+      }
+      else recentFiles[i] = "";
+   }
+}
+
+void CamlDevWindow::updateRecent()
+{
+   bool found = false;
+   for(int i = 0; i < numRecentFiles; i++)
+   {
+      if(currentFile == recentFiles[i])
+      {
+         int cpt = i;
+         while (cpt > 0)
+         {
+            recentFiles[cpt] = recentFiles[cpt - 1];
+            cpt--;
+         }
+         recentFiles[0] = currentFile;
+         found = true;
+      }
+   }
+   
+   if(!found)
+   {
+      int cpt = numRecentFiles - 1;
+      while(cpt > 0)
+      {
+         recentFiles[cpt] = recentFiles[cpt - 1];
+         cpt--;
+      }
+      recentFiles[0] = currentFile;
+   }
+   
+   //then, update the settings
+   for(int i = 0; i < numRecentFiles; i++)
+   {
+      if(recentFiles[i] != "") recent[i]->setText(recentFiles[i]);
+      else recent[i]->setText("(empty)");
+      settings->setValue("Recent/file" + QString(i), recentFiles[i]);
+   }
+   
+   return;
+}
+
+void CamlDevWindow::openRecent()
+{
+   if(sender())
+   {
+      QAction* snd = (QAction*) sender();
+      if(snd->text() != "(empty)")
+         openFile(snd->text());
+   }
 }

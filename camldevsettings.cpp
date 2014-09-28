@@ -33,10 +33,15 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   this->camlPathField = new QLineEdit(camlPath,this);
   this->camlToolkitPathField = new QLineEdit(camlToolkitPath,this);
   this->stdlibPathField = new QLineEdit(stdlibPath,this);
+  this->numberField = new QSpinBox(this);
+  numberField->setRange(0, 20);
+  numberField->setSingleStep(1);
+  numberField->setValue(settings->value("Recent/number",5).toInt());
   
   this->camlPathL = new QLabel("CaML top-level executable:",this);
   this->stdlibPathL = new QLabel("CaML standard library path:",this);
   this->camlToolkitPathL = new QLabel("CaML toolkit path (optional, for compiling):",this);
+  this->numberL = new QLabel("Number of recent files to be kept:", this);
   
   mainLayout->addWidget(camlPathL);
   mainLayout->addWidget(camlPathField);
@@ -44,6 +49,8 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   mainLayout->addWidget(stdlibPathField);
   mainLayout->addWidget(camlToolkitPathL);
   mainLayout->addWidget(camlToolkitPathField);
+  mainLayout->addWidget(numberL);
+  mainLayout->addWidget(numberField);
   
   this->buttonsLayout = new QHBoxLayout;
   this->ok = new QPushButton("OK",this);
@@ -64,5 +71,6 @@ void CamlDevSettings::saveSettings()
   settings->setValue("General/camlPath", camlPathField->text());
   settings->setValue("General/stdlibPath", stdlibPathField->text());
   settings->setValue("General/camlToolkitPath", camlToolkitPathField->text());
+  settings->setValue("Recent/number", numberField->value());
   this->close();
 }

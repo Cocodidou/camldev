@@ -25,6 +25,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QSettings>
+#include <QSpinBox>
 
 class CamlDevSettings : public QDialog
 {
@@ -45,9 +46,12 @@ private:
   QLineEdit *camlToolkitPathField;
   QLineEdit *stdlibPathField;
   
+  QSpinBox *numberField;
+  
   QLabel *camlPathL;
   QLabel *camlToolkitPathL;
   QLabel *stdlibPathL;
+  QLabel *numberL;
   
   QHBoxLayout *buttonsLayout;
   QPushButton *ok;
