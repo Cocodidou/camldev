@@ -154,6 +154,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     connect(actionSendCaml,SIGNAL(triggered()),this,SLOT(sendCaml()));
     connect(camlProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readCaml()));
     connect(camlProcess,SIGNAL(readyReadStandardError()),this,SLOT(readCamlErrors()));
+    connect(camlProcess,SIGNAL(stateChanged(QProcess::ProcessState)),this,SLOT(updateCamlStatus(QProcess::ProcessState)));
     connect(actionStopCaml,SIGNAL(triggered()),this,SLOT(stopCaml()));
     connect(camlProcess,SIGNAL(started()),this,SLOT(camlOK()));
     connect(actionInterruptCaml,SIGNAL(triggered()),this,SLOT(interruptCaml()));
@@ -186,6 +187,8 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->generateRecentMenu();
     this->populateRecent();
     
+    
+    
     this->startCamlProcess();
 }
 
@@ -212,16 +215,45 @@ bool CamlDevWindow::startCamlProcess()
     return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
 }
 
+void CamlDevWindow::updateCamlStatus(QProcess::ProcessState newState)
+{
+  switch(newState)
+  {
+    case QProcess::NotRunning:
+    case QProcess::Starting:
+      if(camlStarted)
+      {
+	this->outputZone->setTextColor(this->palette().color(QPalette::WindowText));
+	this->outputZone->append("Caml Stopped\n-----------\n\n");
+	camlStarted = false;
+      }
+      break;
+    
+    case QProcess::Running:
+      camlStarted = true;
+      break;
+      
+    default:
+      break;
+      
+  }
+}
+
 void CamlDevWindow::sendCaml()
 {
+    bool prevCaml = false; //hack to let caml print "Caml Light v0.75..." before outputting the command
     if(!camlStarted)
     {
-        camlStarted = startCamlProcess();
+      prevCaml = true;
+        startCamlProcess();
+	camlProcess->waitForStarted();
         if(!camlStarted)
         {
             QMessageBox::warning(this,"Warning","Unable to start Caml toplevel!!");
         }
+        
     }
+    
     QTextCursor cursor = inputZone->textCursor();
     int curPos = cursor.position();
     QString text = inputZone->toPlainText();
@@ -242,7 +274,11 @@ void CamlDevWindow::sendCaml()
     QString toWrite = text.mid(startPos,endPos - startPos)  + "\n\0";
     toWrite = removeComments(toWrite);
     toWrite = removeUnusedLineBreaks(toWrite,true);
+    
+    if(prevCaml) {
 
+      readCaml();
+    }
     appendOutput(toWrite,Qt::blue);
 
     camlProcess->write(toWrite.toLocal8Bit());
@@ -267,7 +303,7 @@ void CamlDevWindow::readCaml()
 
     QString stdOut = camlProcess->readAllStandardOutput();
     stdOut = removeUnusedLineBreaks(stdOut,false);
-    if(stdOut != "") appendOutput(stdOut,Qt::black);
+    if(stdOut != "") appendOutput(stdOut,this->palette().color(QPalette::WindowText));
 
 }
 
@@ -278,10 +314,9 @@ void CamlDevWindow::camlOK()
 
 void CamlDevWindow::stopCaml()
 {
-    this->camlStarted = false;
+//    this->camlStarted = false;
     camlProcess->close();
-    this->outputZone->setTextColor(Qt::black);
-    this->outputZone->append("Caml Stopped");
+
 
 }
 
@@ -420,7 +455,6 @@ void CamlDevWindow::textChanged()
         this->unsavedChanges = true;
         this->setWindowTitle(this->windowTitle() + " (*)");
     }
-    this->syntaxingColoration();
 }
 
 void CamlDevWindow::newFile()
@@ -439,10 +473,7 @@ void CamlDevWindow::newFile()
     this->startCamlProcess();
 }
 
-void CamlDevWindow::syntaxingColoration()
-{
-    /* Stub. Unless someone finds a way to highlight the syntax without using regexps, vectors and all that, there won't be any. */
-}
+
 
 bool CamlDevWindow::exitCurrentFile()
 {

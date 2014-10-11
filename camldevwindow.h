@@ -55,11 +55,8 @@ public:
     void openFile(QString file);
     bool saveFile(QString file);
     void appendOutput(QString str, QColor color);
-    void syntaxingColoration();
     QString currentFile;
     bool exitCurrentFile();
-
-
 
 private:
     InputZone *inputZone;
@@ -129,6 +126,7 @@ public slots:
     void about();
     void aboutQt();
     void openRecent();
+    void updateCamlStatus(QProcess::ProcessState newState);
     
 };
 
