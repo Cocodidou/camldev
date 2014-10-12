@@ -97,3 +97,11 @@ rm -rf ./cl75
 rm PatchCl75_2014_04_30.zip
 rm -rf rm PatchCl75_2014_04_30
 rm archi.txt
+
+# Configure LemonCaml
+mkdir ~/.config/Cocodidou
+touch ~/.config/Cocodidou/LemonCaml.conf
+echo "[%General]" >> ~/.config/Cocodidou/LemonCaml.conf
+echo "camlPath=$(pwd)/caml/CamlLightToplevel" >> ~/.config/Cocodidou/LemonCaml.conf
+echo "keywordspath=$(pwd)/keywords" >> ~/.config/Cocodidou/LemonCaml.conf
+echo "stdlibPath=$(pwd)/caml/lib" >> ~/.config/Cocodidou/LemonCaml.conf
