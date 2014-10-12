@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Get the archives - source from the INRIA and patch from Jean Mouric
 wget http://caml.inria.fr/pub/distrib/caml-light-0.75//cl75unix.tar.gz
