@@ -34,12 +34,20 @@ public:
     LastConstruct = Preprocessor
   };
   
-  highlighter(QTextDocument *document);
+  highlighter(QTextDocument *document, QStringList *kw);
   
   void setFormatFor(Construct construct,
 		    const QTextCharFormat &format);
   QTextCharFormat formatFor(Construct construct) const
   { return m_formats[construct]; }
+  
+  struct keyword {
+    QString word;
+    Construct type;
+  };
+  
+  keyword *keywords;
+  int numKW;
   
 protected:
   enum State {
@@ -55,4 +63,6 @@ protected:
 private:
   QTextCharFormat m_formats[LastConstruct + 1];
   bool insideWord(QString str, int start, int len);
+  void createKeywordArray(QStringList *lst);
+  
 };

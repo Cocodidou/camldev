@@ -51,7 +51,28 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->outputZone->setReadOnly(true);
     this->outputZone->setTabStopWidth(20);
     
-    this->hilit = new highlighter(inputZone->document());
+    QString kwfileloc = settings->value("General/keywordspath", "./keywords").toString();
+    
+    QFile kwfile(kwfileloc);
+    QStringList kwds;
+    
+    if(kwfile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      QTextStream kstream(&kwfile);
+      QString st = kstream.readLine(256);
+      while(st != "")
+      {
+         kwds << st;
+         st = kstream.readLine(256);
+      }
+      kwfile.close();
+    }
+    else
+    {
+       QMessageBox::warning(this, "Warning", "Unable to open the keywords file. There will likely be no syntax highlighting.");
+    }
+    this->hilit = new highlighter(inputZone->document(), &kwds);
+    
     
     
     QString oFont = settings->value("Output/Font", "").toString();
@@ -103,6 +124,11 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
 
     this->actionAbout = new QAction("About LemonCaml...",this);
     this->actionAboutQt = new QAction("About Qt...",this);
+    
+    this->actionHighlightEnable = new QAction("Enable syntax highlighting", this);
+    this->actionHighlightEnable->setIcon(QIcon(":/highlight.png"));
+    this->actionHighlightEnable->setCheckable(true);
+    this->actionHighlightEnable->setChecked(true);
 
     /* The toolbar */
     this->toolbar = new QToolBar("Tools",this);
@@ -118,6 +144,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->toolbar->addAction(actionSendCaml);
     this->toolbar->addAction(actionInterruptCaml);
     this->toolbar->addAction(actionStopCaml);
+    this->toolbar->addAction(actionHighlightEnable);
     this->addToolBar(this->toolbar);
     
     /* The menubar */
@@ -137,6 +164,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     this->menuEdit->addSeparator();
     this->menuEdit->addAction(actionAutoIndent);
     this->menuEdit->addAction(actionClearOutput);
+    this->menuEdit->addAction(actionHighlightEnable);
     this->menuEdit->addAction(actionChangeInputFont);
     this->menuEdit->addAction(actionChangeOutputFont);
 
@@ -180,6 +208,7 @@ CamlDevWindow::CamlDevWindow(QString wd, QWidget *parent) :
     connect(actionRedo,SIGNAL(triggered()),this->inputZone,SLOT(redo()));
     connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
     connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
+    connect(actionHighlightEnable,SIGNAL(toggled(bool)),this,SLOT(toggleHighlightOn(bool)));
     
     connect(actionAbout,SIGNAL(triggered()),this,SLOT(about()));
     connect(actionAboutQt,SIGNAL(triggered()),this,SLOT(aboutQt()));
@@ -667,4 +696,9 @@ void CamlDevWindow::openRecent()
       if(snd->text() != "(empty)")
          openFile(snd->text());
    }
+}
+
+void CamlDevWindow::toggleHighlightOn(bool doHighlight)
+{
+    hilit->setDocument(doHighlight ? inputZone->document() : 0);
 }

@@ -82,6 +82,7 @@ private:
     QAction *actionChangeOutputFont;
     QAction *actionAbout;
     QAction *actionAboutQt;
+    QAction *actionHighlightEnable;
     QAction **recent = NULL;
     QString* recentFiles;
     int numRecentFiles;
@@ -127,6 +128,7 @@ public slots:
     void aboutQt();
     void openRecent();
     void updateCamlStatus(QProcess::ProcessState newState);
+    void toggleHighlightOn(bool doHighlight);
     
 };
 

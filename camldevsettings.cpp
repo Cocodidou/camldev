@@ -19,6 +19,7 @@
 CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
     QDialog(parent)
 {
+  this->setWindowTitle("LemonCaml settings");
   this->settings = set;
 #ifdef WIN32
   this->camlPath = settings->value("General/camlPath","./caml/CamlLightToplevel.exe").toString();
@@ -27,12 +28,17 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
 #endif
   this->stdlibPath = settings->value("General/stdlibPath","./caml/lib/").toString();
   this->camlToolkitPath = settings->value("General/camlToolkitPath","./caml/comp/").toString();
+  this->kwfilePath = settings->value("General/keywordspath", "./keywords").toString();
   
   this->mainLayout = new QVBoxLayout;
   
   this->camlPathField = new QLineEdit(camlPath,this);
+  this->camlPathField->setWhatsThis("This is the path to the Caml toplevel executable.<br /> \
+  It should be an absolute path if LemonCaml gets opened from another directory than \
+  the place it got compiled in...");
   this->camlToolkitPathField = new QLineEdit(camlToolkitPath,this);
   this->stdlibPathField = new QLineEdit(stdlibPath,this);
+  this->keywordsPathField = new QLineEdit(kwfilePath, this);
   this->numberField = new QSpinBox(this);
   numberField->setRange(0, 20);
   numberField->setSingleStep(1);
@@ -42,6 +48,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   this->stdlibPathL = new QLabel("CaML standard library path:",this);
   this->camlToolkitPathL = new QLabel("CaML toolkit path (optional, for compiling):",this);
   this->numberL = new QLabel("Number of recent files to be kept:", this);
+  this->keywordsPathL = new QLabel("Keywords file (for syntax highlighting):", this);
   
   mainLayout->addWidget(camlPathL);
   mainLayout->addWidget(camlPathField);
@@ -49,6 +56,8 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   mainLayout->addWidget(stdlibPathField);
   mainLayout->addWidget(camlToolkitPathL);
   mainLayout->addWidget(camlToolkitPathField);
+  mainLayout->addWidget(keywordsPathL);
+  mainLayout->addWidget(keywordsPathField);
   mainLayout->addWidget(numberL);
   mainLayout->addWidget(numberField);
   
@@ -61,8 +70,14 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   //buttonsLayout->addWidget(cancel);
   
   //mainLayout->addWidget(buttonsLayout);
-  mainLayout->addWidget(ok);
-  mainLayout->addWidget(cancel);
+  
+  this->OKCancelLayout = new QHBoxLayout;
+  
+  OKCancelLayout->addWidget(ok);
+  OKCancelLayout->addWidget(cancel);
+  
+  mainLayout->addLayout(OKCancelLayout);
+  
   this->setLayout(mainLayout);
 }
 
@@ -72,5 +87,6 @@ void CamlDevSettings::saveSettings()
   settings->setValue("General/stdlibPath", stdlibPathField->text());
   settings->setValue("General/camlToolkitPath", camlToolkitPathField->text());
   settings->setValue("Recent/number", numberField->value());
+  settings->setValue("General/keywordspath", keywordsPathField->text());
   this->close();
 }

@@ -16,7 +16,7 @@
 
 #include "highlighter.h"
 
-highlighter::highlighter(QTextDocument *document)
+highlighter::highlighter(QTextDocument *document, QStringList *kw)
 : QSyntaxHighlighter(document)
 {
    QTextCharFormat variableDecFormat;
@@ -59,6 +59,8 @@ highlighter::highlighter(QTextDocument *document)
    QTextCharFormat builtInFunctionFormat;
    builtInFunctionFormat.setForeground(QColor(0, 21, 156));
    setFormatFor(BuiltInFunction, builtInFunctionFormat);
+   
+   createKeywordArray(kw);
 }
 
 void highlighter::setFormatFor(Construct construct, const QTextCharFormat &format)
@@ -97,265 +99,81 @@ void highlighter::highlightBlock(const QString &text)
                   setFormat(pos, 1, m_formats[Char]);
                   ++pos;
                   break;
-               } else if (text.mid(pos, 3) == "let" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[VariableDec]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 3) == "rec" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[VariableDec]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 2) == "of" && !insideWord(text, pos, 2)) {
-                  setFormat(pos, 2, m_formats[VariableDec]);
+               } else {
+                  bool foundKW = false;
+                  int i = 0;
+                  while(i < numKW && !foundKW)
+                  {
+                     int keywlen = keywords[i].word.length();
+                     if(text.mid(pos, keywlen) == keywords[i].word && !insideWord(text, pos, keywlen))
+                     {
+                        setFormat(pos, keywlen, m_formats[keywords[i].type]);
+                        pos += keywlen;
+                        foundKW = true;
+                     }
+                     i++;
+                  }
+                  if(!foundKW)
+                     ++pos;
+               }
+            }
+            break;
+         case InComment:
+            start = pos;
+            while (pos < len) {
+               if (text.mid(pos, 2) == "*)") {
                   pos += 2;
-                  break;
-               } else if (text.mid(pos, 9) == "exception" && !insideWord(text, pos, 9)) {
-                  setFormat(pos, 9, m_formats[VariableDec]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 7) == "Failure" && !insideWord(text, pos, 7)) {
-                  setFormat(pos, 7, m_formats[VariableDec]);
-                  pos += 7;
-                  break;
-               } else if (text.mid(pos, 2) == "in" && !insideWord(text, pos, 2)) {
-                  setFormat(pos, 2, m_formats[VariableDec]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 3) == "ref" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[VariableDec]);
-                  pos += 3;
-                  break;
-               } else if ( (text.mid(pos, 2) == "<-" || text.mid(pos, 2) == "->") && !insideWord(text, pos, 2)) {
-                  setFormat(pos, 2, m_formats[VariableDec]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 4) == "type" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[VariableDec]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 4) == "true" && !insideWord(text, pos, 4)) {
-                  setFormat(pos,  4, m_formats[Boolean]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 5) == "false" && !insideWord(text, pos, 5)) {
-                  setFormat(pos,  5, m_formats[Boolean]);
-                  pos += 5;
-                  break;
-               } else if (text.mid(pos, 5) == "while" && !insideWord(text, pos, 5)) {
-                  setFormat(pos,  5, m_formats[Loop]);
-                  pos += 5;
-                  break;
-               }  else if (text.mid(pos, 3) == "for" && !insideWord(text, pos, 3)) {
-                  setFormat(pos,  3, m_formats[Loop]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 3) == "try" && !insideWord(text, pos, 3)) {
-                  setFormat(pos,  3, m_formats[Loop]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 4) == "with" && !insideWord(text, pos, 4)) {
-                  setFormat(pos,  4, m_formats[Loop]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 2) == "do" && !insideWord(text, pos, 2)) {
-                  setFormat(pos,  2, m_formats[Loop]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 4) == "done" && !insideWord(text, pos, 4)) {
-                  setFormat(pos,  4, m_formats[Loop]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 5) == "match" && !insideWord(text, pos, 5)) {
-                  setFormat(pos,  5, m_formats[Loop]);
-                  pos += 5;
-                  break;
-               } else if (text.mid(pos, 3) == "and" && !insideWord(text, pos, 3)) {
-                  setFormat(pos,  3, m_formats[VariableDec]);
-                  pos += 3;
-                  break;
-               } else if (text.at(pos) == '&' && !insideWord(text, pos, 1)) {
-                  setFormat(pos,  1, m_formats[Boolean]);
-                  ++pos;
-                  break;
-               } else if (text.mid(pos, 2) == "||" && !insideWord(text, pos, 2)) {
-                  setFormat(pos,  2, m_formats[Boolean]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 4) == "with" && !insideWord(text, pos, 4)) {
-                  setFormat(pos,  4, m_formats[Loop]);
-                  pos += 4;
-                  break;
-               }  else if (text.mid(pos, 2) == "to" && !insideWord(text, pos, 2)) {
-                  setFormat(pos,  2, m_formats[Loop]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 2) == "if" && !insideWord(text, pos, 2)) {
-                  setFormat(pos,  2, m_formats[Loop]);
-                  pos += 2;
-                  break;
-               } else if (text.mid(pos, 4) == "then" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[Loop]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 4) == "else" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[Loop]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 8) == "function" && !insideWord(text, pos, 8)) {
-                  setFormat(pos, 8, m_formats[Loop]);
-                  pos += 8;
-                  break;
-               } else if (text.mid(pos, 3) == "fun" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[Loop]);
-                  pos += 3;
-                  break;
-                  //the built in types
-               } else if (text.mid(pos, 4) == "char" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[BuiltInType]);
-                  pos += 4;
-                  break;     
-               } else if (text.mid(pos, 4) == "vect" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[BuiltInType]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 4) == "bool" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[BuiltInType]);
-                  pos += 4;
-                  break;    
-               } else if (text.mid(pos, 6) == "string" && !insideWord(text, pos, 6)) {
-                  setFormat(pos, 6, m_formats[BuiltInType]);
-                  pos += 6;
-                  break;
-               } else if (text.mid(pos, 4) == "list" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[BuiltInType]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 3) == "int" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[BuiltInType]);
-                  pos += 3;
-                  break;
-                  //then the built in functions
-               } else if (text.mid(pos, 9) == "make_vect" && !insideWord(text, pos, 9)) {
-                  setFormat(pos, 9, m_formats[BuiltInFunction]);
-                  pos += 9;
-                  break;
-               } else if (text.mid(pos, 11) == "make_matrix" && !insideWord(text, pos, 11)) {
-                  setFormat(pos, 11, m_formats[BuiltInFunction]);
-                  pos += 11;
-                  break;
-               } else if (text.mid(pos, 12) == "int_of_float" && !insideWord(text, pos, 12)) {
-                  setFormat(pos, 12, m_formats[BuiltInFunction]);
-                  pos += 12;
-                  break;
-               } else if (text.mid(pos, 12) == "float_of_int" && !insideWord(text, pos, 12)) {
-                  setFormat(pos, 12, m_formats[BuiltInFunction]);
-                  pos += 12;
-                  break;
-               } else if (text.mid(pos, 7) == "do_list" && !insideWord(text, pos, 7)) {
-                  setFormat(pos, 7, m_formats[BuiltInFunction]);
-                  pos += 7;
-                  break;
-               } else if (text.mid(pos, 8) == "map_vect" && !insideWord(text, pos, 8)) {
-                  setFormat(pos, 8, m_formats[BuiltInFunction]);
-                  pos += 8;
-                  break;
-               } else if (text.mid(pos, 3) == "min" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[BuiltInFunction]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 3) == "max" && !insideWord(text, pos, 3)) {
-                  setFormat(pos, 3, m_formats[BuiltInFunction]);
-                  pos += 3;
-                  break;
-               } else if (text.mid(pos, 13) == "int_of_string" && !insideWord(text, pos, 13)) {
-                  setFormat(pos, 13, m_formats[BuiltInFunction]);
-                  pos += 13;
-                  break;
-               } else if (text.mid(pos, 13) == "string_of_int" && !insideWord(text, pos, 13)) {
-                  setFormat(pos, 13, m_formats[BuiltInFunction]);
-                  pos += 13;
-                  break;
-               } else if (text.mid(pos, 5) == "raise" && !insideWord(text, pos, 5)) {
-                  setFormat(pos, 5, m_formats[BuiltInFunction]);
-                  pos += 5;
-                  break;
-               } else if (text.mid(pos, 8) == "failwith" && !insideWord(text, pos, 8)) {
-                  setFormat(pos, 8, m_formats[BuiltInFunction]);
-                  pos += 8;
-                  break;
-               } else if (text.mid(pos, 4) == "incr" && !insideWord(text, pos, 4)) {
-                  setFormat(pos, 4, m_formats[BuiltInFunction]);
-                  pos += 4;
-                  break;
-               } else if (text.mid(pos, 10) == "sub_string" && !insideWord(text, pos, 10)) {
-                  setFormat(pos, 10, m_formats[BuiltInFunction]);
-                  pos += 10;
-                  break;
-               } else if (text.mid(pos, 13) == "string_length" && !insideWord(text, pos, 13)) {
-                  setFormat(pos, 13, m_formats[BuiltInFunction]);
-                  pos += 13;
+                  state = NormalState;
                   break;
                } else {
                   ++pos;
                }
             }
+            setFormat(start, pos - start,
+                      m_formats[Comment]);
             break;
-            case InComment:
-               start = pos;
-               while (pos < len) {
-                  if (text.mid(pos, 2) == "*)") {
-                     pos += 2;
-                     state = NormalState;
-                     break;
-                  } else {
-                     ++pos;
-                  }
+         case InString:
+            start = pos;
+            while (pos < len) {
+               if (text.at(pos) == '"') {
+                  pos += 1;
+                  state = NormalState;
+                  break;
+               } else {
+                  ++pos;
                }
-               setFormat(start, pos - start,
-                         m_formats[Comment]);
-               break;
-            case InString:
-               start = pos;
-               while (pos < len) {
-                  if (text.at(pos) == '"') {
-                     pos += 1;
-                     state = NormalState;
-                     break;
-                  } else {
-                     ++pos;
-                  }
+            }
+            setFormat(start, pos - start,
+                      m_formats[String]);
+            break;	
+         case InChar:
+            start = pos;
+            while (pos < len) {
+               if (text.at(pos) == '`') {
+                  pos += 1;
+                  state = NormalState;
+                  break;
+               } else {
+                  ++pos;
                }
-               setFormat(start, pos - start,
-                         m_formats[String]);
-               break;	
-            case InChar:
-               start = pos;
-               while (pos < len) {
-                  if (text.at(pos) == '`') {
-                     pos += 1;
-                     state = NormalState;
-                     break;
-                  } else {
-                     ++pos;
-                  }
+            }
+            setFormat(start, pos - start,
+                      m_formats[Char]);
+            break;
+         case InPreprocessor:
+            start = pos;
+            while (pos < len) {
+               if (text.mid(pos,2) == ";;") {
+                  pos += 2;
+                  state = NormalState;
+                  break;
+               } else {
+                  ++pos;
                }
-               setFormat(start, pos - start,
-                         m_formats[Char]);
-               break;
-            case InPreprocessor:
-               start = pos;
-               while (pos < len) {
-                  if (text.mid(pos,2) == ";;") {
-                     pos += 2;
-                     state = NormalState;
-                     break;
-                  } else {
-                     ++pos;
-                  }
-               }
-               setFormat(start, pos - start,
-                         m_formats[Preprocessor]);
-               break;
+            }
+            setFormat(start, pos - start,
+                      m_formats[Preprocessor]);
+            break;
       }
    }
    
@@ -366,17 +184,39 @@ bool highlighter::insideWord(QString str, int start, int len)
 {
    if(start > 0) {
       char a = str.at(start-1).toLatin1();
-      if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || a == '_' || a == '-') && (a != ' '))
+      if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || a == '_' || a == '-' || (a >= '0' && a <= '9')) && (a != ' '))
       {
          return true;
       }
    }
    if(start + len <= str.length()) {
       char a = str.at(start + len).toLatin1();
-      if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || a == '_' || a == '-') && (a != ' '))
+      if( ((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || a == '_' || a == '-' || (a >= '0' && a <= '9')) && (a != ' '))
       {
          return true;
       }
    }
    return false;
+}
+
+void highlighter::createKeywordArray(QStringList *lst)
+{
+   int len = lst->count();
+   keywords = new keyword[len];
+   for(int i = 0; i < len; i++)
+   {
+      QStringList spl = lst->at(i).split(";", QString::SkipEmptyParts);
+      if(spl.count() == 2)
+      {
+         keywords[i].word = spl[0];
+         keywords[i].type = static_cast<Construct>(spl[1].toInt());
+      }
+      else //skip
+      {
+         keywords[i].word = "";
+         keywords[i].type = BuiltInType; //any...
+      }
+   }
+   numKW = len;
+   
 }

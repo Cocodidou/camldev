@@ -38,13 +38,16 @@ private:
   QString camlPath;
   QString camlToolkitPath;
   QString stdlibPath;
+  QString kwfilePath;
   QSettings *settings;
   
   QVBoxLayout *mainLayout;
+  QHBoxLayout *OKCancelLayout;
   
   QLineEdit *camlPathField;
   QLineEdit *camlToolkitPathField;
   QLineEdit *stdlibPathField;
+  QLineEdit *keywordsPathField;
   
   QSpinBox *numberField;
   
@@ -52,6 +55,7 @@ private:
   QLabel *camlToolkitPathL;
   QLabel *stdlibPathL;
   QLabel *numberL;
+  QLabel *keywordsPathL;
   
   QHBoxLayout *buttonsLayout;
   QPushButton *ok;
