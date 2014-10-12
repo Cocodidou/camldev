@@ -68,12 +68,22 @@ cp ./*.zi ../../src/lib/
 cp ./*.zo ../../src/lib/
 cp ./*.a ../../src/lib/
 cd ..
+
+
+# Build the "str" package
+cd libstr
+make
+cp ./*.zi ../../src/lib/
+cp ./*.zo ../../src/lib/
+cp ./*.a ../../src/lib/
+cd ..
+
 cd ..
 
 # Build a toplevel with the compiled libs
 cd src
 cd lib
-camlmktop -o CamlLightToplevel -custom int_misc.zo fnat.zo nat.zo big_int.zo arith_flags.zo ratio.zo num.zo arith_status.zo numprint.zo libnums.a unix.zo graphics.zo libgraph.a libunix.a -ccopt -L/usr/lib -lX11 -lpthread
+camlmktop -o CamlLightToplevel -custom int_misc.zo fnat.zo nat.zo big_int.zo arith_flags.zo ratio.zo num.zo arith_status.zo numprint.zo libnums.a unix.zo graphics.zo libgraph.a libunix.a str.zo libstr.a -ccopt -L/usr/lib -lX11 -lpthread
 cd ..
 cd ..
 
