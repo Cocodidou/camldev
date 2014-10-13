@@ -44,38 +44,71 @@ cd ..
 # Optional packages are in the "contrib" subdir
 cd contrib
 
+# Optional packages built
+APPEND=""
+CCOPT=""
+SUMMARY=""
+
 # Build the "unix" package, required for the "graphics" package below
 cd libunix
 make
-cp ./unix.zi ../../src/lib/
-cp ./unix.zo ../../src/lib/
-cp ./*.a ../../src/lib/
+if [ -a "./libunix.a" ]; then
+   cp ./unix.zi ../../src/lib/
+   cp ./unix.zo ../../src/lib/
+   cp ./*.a ../../src/lib/
+   UNIXBUILT="true"
+   APPEND=$APPEND" unix.zo libunix.a"
+   CCOPT=$CCOPT"-ccopt -L/usr/lib -lX11 -lpthread"
+   echo "Built the Unix package"
+else
+   SUMMARY=$SUMMARY"Building the Unix package failed - could not build the graphics package either\n"
+fi
 cd ..
 
 # Build the "graphics" package
-cd libgraph-unix
-make
-cp ./*.zi ../../src/lib/
-cp ./*.zo ../../src/lib/
-cp ./*.a ../../src/lib/
-cd ..
+if [ $UNIXBUILT = "true" ]; then
+   cd libgraph-unix
+   make
+   if [ -a "./libgraph.a" ]; then
+      cp ./*.zi ../../src/lib/
+      cp ./*.zo ../../src/lib/
+      cp ./*.a ../../src/lib/
+      APPEND=$APPEND" graphics.zo libgraph.a"
+      echo "Built the graphics package"
+   else
+      SUMMARY=$SUMMARY"Building the graphics package failed, yet the unix library has been successfully built\n"
+   fi
+   cd ..
+fi
 
 # Build the "num" package
 cd libnum
 sed -i "s/CAMLLIBR=camllibr/CAMLLIBR=camlrun $(echo $LIBDIR | sed "s/\//\\\\\//g")\/camllibr/g" ./Makefile
 make
-cp ./*.zi ../../src/lib/
-cp ./*.zo ../../src/lib/
-cp ./*.a ../../src/lib/
+if [ -a "./libnums.a" ]; then
+   cp ./*.zi ../../src/lib/
+   cp ./*.zo ../../src/lib/
+   cp ./*.a ../../src/lib/
+   APPEND=$APPEND" int_misc.zo fnat.zo nat.zo big_int.zo arith_flags.zo ratio.zo num.zo arith_status.zo numprint.zo libnums.a"
+   echo "Built the num package"
+else
+   SUMMARY=$SUMMARY"Building the num package failed\n"
+fi
 cd ..
 
 
 # Build the "str" package
 cd libstr
 make
-cp ./*.zi ../../src/lib/
-cp ./*.zo ../../src/lib/
-cp ./*.a ../../src/lib/
+if [ -a "./libstr.a" ]; then
+   cp ./*.zi ../../src/lib/
+   cp ./*.zo ../../src/lib/
+   cp ./*.a ../../src/lib/
+   APPEND=$APPEND" str.zo libstr.a"
+   echo "Built the str package"
+else
+   SUMMARY=$SUMMARY"Building the str package failed\n"
+fi
 cd ..
 
 cd ..
@@ -83,7 +116,7 @@ cd ..
 # Build a toplevel with the compiled libs
 cd src
 cd lib
-camlmktop -o CamlLightToplevel -custom int_misc.zo fnat.zo nat.zo big_int.zo arith_flags.zo ratio.zo num.zo arith_status.zo numprint.zo libnums.a unix.zo graphics.zo libgraph.a libunix.a str.zo libstr.a -ccopt -L/usr/lib -lX11 -lpthread
+camlmktop -o CamlLightToplevel -custom $APPEND $CCOPT
 cd ..
 cd ..
 
@@ -109,9 +142,16 @@ rm -rf rm PatchCl75_2014_04_30
 rm archi.txt
 
 # Configure LemonCaml
-mkdir ~/.config/Cocodidou
-touch ~/.config/Cocodidou/LemonCaml.conf
-echo "[%General]" >> ~/.config/Cocodidou/LemonCaml.conf
+if [ ! -e  ~/.config/Cocodidou ]; then
+   mkdir ~/.config/Cocodidou
+fi
+echo "[%General]" > ~/.config/Cocodidou/LemonCaml.conf
 echo "camlPath=$(pwd)/caml/CamlLightToplevel" >> ~/.config/Cocodidou/LemonCaml.conf
 echo "keywordspath=$(pwd)/keywords" >> ~/.config/Cocodidou/LemonCaml.conf
 echo "stdlibPath=$(pwd)/caml/lib" >> ~/.config/Cocodidou/LemonCaml.conf
+
+if [ "$SUMMARY" = "" ]; then
+   echo "Everything went right, Caml should be up and running."
+else
+   echo $SUMMARY
+fi
