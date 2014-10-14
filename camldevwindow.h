@@ -42,94 +42,95 @@
 
 class CamlDevWindow : public QMainWindow
 {
-    Q_OBJECT
+   Q_OBJECT
 public:
-    explicit CamlDevWindow(QString wd = "", QWidget *parent = 0);
-    ~CamlDevWindow();
-    QString programTitle;
-    bool startCamlProcess();
-    bool camlStarted;
-    bool unsavedChanges;
-    QString removeComments(QString);
-    QString removeUnusedLineBreaks(QString, bool isPersonalOutput);
-    void openFile(QString file);
-    bool saveFile(QString file);
-    void appendOutput(QString str, QColor color);
-    QString currentFile;
-    bool exitCurrentFile();
-
+   explicit CamlDevWindow(QString wd = "", QWidget *parent = 0);
+   ~CamlDevWindow();
+   void openFile(QString file);
+   bool saveFile(QString file);
+   bool exitCurrentFile();
+   
 private:
-    InputZone *inputZone;
-    QTextEdit *outputZone;
-    QSplitter *split;
-    QToolBar *toolbar;
-    QAction *actionNew;
-    QAction *actionOpen;
-    QAction *actionSave;
-    QAction *actionSaveAs;
-    QAction *actionPrint;
-    QAction *actionQuit;
-    QAction *actionStopCaml;
-    QAction *actionInterruptCaml;
-    QAction *actionSendCaml;
-    QAction *actionShowSettings;
-    QAction *actionClearOutput;
-    QAction *actionAutoIndent;
-    QAction *actionUndo;
-    QAction *actionRedo;
-    QAction *actionDelete;
-    QAction *actionChangeInputFont;
-    QAction *actionChangeOutputFont;
-    QAction *actionAbout;
-    QAction *actionAboutQt;
-    QAction *actionHighlightEnable;
-    QAction **recent = NULL;
-    QString* recentFiles;
-    int numRecentFiles;
-    QMenu *menuFile;
-    QMenu *menuEdit;
-    QMenu *menuCaml;
-    QMenu *menuHelp;
-    QMenu *menuRecent;
-    QProcess *camlProcess;
-    QSettings *settings;
-    QPrinter *printer;
-    highlighter *hilit;
-    QString cwd;
-    void closeEvent(QCloseEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void moveEvent(QMoveEvent * event);
-    void populateRecent();
-    void generateRecentMenu();
-    void updateRecent();
-
+   void appendOutput(QString str, QColor color);
+   QString programTitle;
+   bool startCamlProcess();
+   bool camlStarted;
+   bool unsavedChanges;
+   QString removeComments(QString);
+   QString removeUnusedLineBreaks(QString, bool isPersonalOutput);
+   QString currentFile;
+   InputZone *inputZone;
+   QTextEdit *outputZone;
+   QSplitter *split;
+   QToolBar *toolbar;
+   QAction *actionNew;
+   QAction *actionOpen;
+   QAction *actionSave;
+   QAction *actionSaveAs;
+   QAction *actionPrint;
+   QAction *actionQuit;
+   QAction *actionStopCaml;
+   QAction *actionInterruptCaml;
+   QAction *actionSendCaml;
+   QAction *actionShowSettings;
+   QAction *actionClearOutput;
+   QAction *actionAutoIndent;
+   QAction *actionUndo;
+   QAction *actionRedo;
+   QAction *actionDelete;
+   QAction *actionChangeInputFont;
+   QAction *actionChangeOutputFont;
+   QAction *actionAbout;
+   QAction *actionAboutQt;
+   QAction *actionHighlightEnable;
+   QAction **recent = NULL;
+   QString* recentFiles;
+   int numRecentFiles;
+   QMenu *menuFile;
+   QMenu *menuEdit;
+   QMenu *menuCaml;
+   QMenu *menuHelp;
+   QMenu *menuRecent;
+   QProcess *camlProcess;
+   QSettings *settings;
+   QPrinter *printer;
+   highlighter *hilit;
+   QString cwd;
+   void closeEvent(QCloseEvent *event);
+   void resizeEvent(QResizeEvent *event);
+   void moveEvent(QMoveEvent * event);
+   void populateRecent();
+   void generateRecentMenu();
+   void updateRecent();
+   bool highlightTriggered;
+   
 signals:
-    
+   
 public slots:
-    void sendCaml();
-    void readCaml();
-    void stopCaml();
-    void camlOK();
-    void interruptCaml();
-    bool saveAs();
-    bool save();
-    void open();
-    void textChanged();
-    void newFile();
-    void readCamlErrors();
-    void print();
-    void changeInputFont();
-    void changeOutputFont();
-    void doPrint();
-    void showSettings();
-    void zoomIn();
-    void zoomOut();
-    void about();
-    void aboutQt();
-    void openRecent();
-    void updateCamlStatus(QProcess::ProcessState newState);
-    void toggleHighlightOn(bool doHighlight);
-    
+   void sendCaml();
+   void readCaml();
+   void stopCaml();
+   void camlOK();
+   void interruptCaml();
+   bool saveAs();
+   bool save();
+   void open();
+   void textChanged();
+   void newFile();
+   void readCamlErrors();
+   void print();
+   void changeInputFont();
+   void changeOutputFont();
+   void doPrint();
+   void showSettings();
+   void zoomIn();
+   void zoomOut();
+   void about();
+   void aboutQt();
+   void openRecent();
+   void updateCamlStatus(QProcess::ProcessState newState);
+   void toggleHighlightOn(bool doHighlight);
+   
 };
 
 #endif // CAMLDEVWINDOW_H
