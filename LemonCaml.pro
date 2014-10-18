@@ -17,13 +17,15 @@ SOURCES += main.cpp \
     camldevwindow.cpp \
     camldevsettings.cpp \
     inputzone.cpp \
-    highlighter.cpp
+    highlighter.cpp \
+    treeparser.cpp
 
 HEADERS += \
     camldevwindow.h \
     camldevsettings.h \
     inputzone.h \
-    highlighter.h
+    highlighter.h \
+    treeparser.h
 
 RESOURCES += \
     icons.qrc

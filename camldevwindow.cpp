@@ -310,7 +310,7 @@ void CamlDevWindow::sendCaml()
    }
    appendOutput(toWrite,Qt::blue);
    
-   camlProcess->write(toWrite.toLocal8Bit());
+   camlProcess->write(toWrite.toLatin1());
    
    int nextCurPos = text.indexOf(";;",curPos) + 2;
    if(nextCurPos == 1){ nextCurPos = text.length();}
@@ -332,6 +332,51 @@ void CamlDevWindow::readCaml()
    
    QString stdOut = camlProcess->readAllStandardOutput();
    stdOut = removeUnusedLineBreaks(stdOut,false);
+   while(stdOut.indexOf("--LemonCamlCommand--") != -1)
+   {
+      int j = stdOut.indexOf("--LemonCamlCommand--"); //20
+      int p = stdOut.indexOf("--EndLemonCamlCommand--"); //23
+      if(p == -1)
+      {
+         appendOutput("---LemonCaml error--- Unterminated command: not interpreted", Qt::red);
+         stdOut = stdOut.mid(j + 20);
+      }
+      else
+      {
+         appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
+         QString cmd = stdOut.mid(j + 20, (p - j - 20));
+         parseFileCommand(cmd);
+         stdOut = stdOut.mid(p + 23);
+      }
+   }
+   while(stdOut.indexOf("--LemonTree--") != -1) //TODO: change this!!!! never leave such an absolute type name here; ask the user, instead.
+   {
+      int j = stdOut.indexOf("--LemonTree--"); // 17
+      int p = stdOut.indexOf("--EndLemonTree--"); //20
+      if(p == -1)
+      {
+         appendOutput("---LemonCaml error--- Unterminated tree: not drawn", Qt::red);
+         stdOut = stdOut.mid(j + 17);  
+      }
+      else
+      {
+         appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
+         QString arb = stdOut.mid(j + 13, (p - j - 13));
+         int k = arb.indexOf('(');
+         if(k != -1)
+         {
+            QString arbString = arb.mid(k);
+            treeParser* tp = new treeParser();
+            QImage* img = tp->parseTree(arbString);
+            QTextCursor cursor = outputZone->textCursor();
+            cursor.insertImage((*img), QString(this->graphCount));
+            outputZone->insertPlainText("\n");
+            this->graphCount++;
+         }
+         stdOut = stdOut.mid(p + 16);
+      }
+      
+   }
    if(stdOut != "") appendOutput(stdOut,this->palette().color(QPalette::WindowText));
    
 }
@@ -421,7 +466,8 @@ bool CamlDevWindow::saveFile(QString file)
       return false;
    }
    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-   QString output = codec->fromUnicode(inputZone->toPlainText());
+   QString output = inputZone->toPlainText(); //codec->fromUnicode(inputZone->toPlainText());
+   
    f.write(output.toUtf8());
    f.close();
    this->setWindowTitle(this->programTitle + " - " + f.fileName());
@@ -477,6 +523,8 @@ void CamlDevWindow::appendOutput(QString str, QColor color)
    outputZone->setTextCursor(tc);
 }
 
+
+
 void CamlDevWindow::textChanged()
 {
    if(!this->unsavedChanges && !highlightTriggered)
@@ -495,6 +543,7 @@ void CamlDevWindow::newFile()
    this->unsavedChanges = false;
    this->currentFile = "";
    this->outputZone->clear();
+   this->graphCount = 0;
    this->setWindowTitle(this->programTitle + " - " + "untitled");
    while(camlProcess->state() != QProcess::NotRunning)
    {
@@ -703,4 +752,17 @@ void CamlDevWindow::toggleHighlightOn(bool doHighlight)
 {
    highlightTriggered = true;
    hilit->setDocument(doHighlight ? inputZone->document() : 0);
+}
+
+void CamlDevWindow::parseFileCommand(QString command)
+{
+   int firstSpace = command.indexOf(' ');
+   if(firstSpace == -1) return;
+   QString cmd = command.left(firstSpace);
+   if(cmd == "SetupPrinter") //setup caml printer
+   {
+      QString built = "#open \"format\";;\n \
+         install_printer \"" + (command.mid(firstSpace + 1)) + "\";;\n";
+      camlProcess->write(built.toLatin1());
+   }
 }

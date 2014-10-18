@@ -31,6 +31,7 @@
 #include <QTextCodec>
 #include <QSplitter>
 #include <QPrinter>
+#include "treeparser.h"
 #include "inputzone.h"
 #include "highlighter.h"
 #include "camldevsettings.h"
@@ -103,6 +104,8 @@ private:
    void generateRecentMenu();
    void updateRecent();
    bool highlightTriggered;
+   int graphCount = 0;
+   void parseFileCommand(QString command);
    
 signals:
    
