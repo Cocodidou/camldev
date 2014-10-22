@@ -26,6 +26,9 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
+#include <QDialogButtonBox>
+#include <QTabWidget>
+#include <QCheckBox>
 #include "common.h"
 
 class CamlDevSettings : public QDialog

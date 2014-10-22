@@ -456,7 +456,7 @@ bool CamlDevWindow::saveFile(QString file)
       QMessageBox::warning(this,"Warning","Unable to save file !!");
       return false;
    }
-   QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+   //QTextCodec *codec = QTextCodec::codecForName("UTF-8");
    QString output = inputZone->toPlainText(); //codec->fromUnicode(inputZone->toPlainText());
    
    f.write(output.toUtf8());
