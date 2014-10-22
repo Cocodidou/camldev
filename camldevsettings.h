@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
+#include "common.h"
 
 class CamlDevSettings : public QDialog
 {
@@ -35,31 +36,25 @@ public:
     
     
 private:
-  QString camlPath;
-  QString camlToolkitPath;
-  QString stdlibPath;
-  QString kwfilePath;
   QSettings *settings;
   
   QVBoxLayout *mainLayout;
-  QHBoxLayout *OKCancelLayout;
+  QDialogButtonBox *OKCancelLayout;
+  
+  QTabWidget *tabWidget;
+  QWidget *generalTab;
+  QWidget *colorsTab;
   
   QLineEdit *camlPathField;
-  QLineEdit *camlToolkitPathField;
   QLineEdit *stdlibPathField;
   QLineEdit *keywordsPathField;
+  QLineEdit *treeModelsPathField;
+  QCheckBox *acceptTrees;
   
   QSpinBox *numberField;
   
-  QLabel *camlPathL;
-  QLabel *camlToolkitPathL;
-  QLabel *stdlibPathL;
-  QLabel *numberL;
-  QLabel *keywordsPathL;
+
   
-  QHBoxLayout *buttonsLayout;
-  QPushButton *ok;
-  QPushButton *cancel;
   
 signals:
     

@@ -35,6 +35,7 @@
 #include "inputzone.h"
 #include "highlighter.h"
 #include "camldevsettings.h"
+
 #ifndef WIN32
 #include "unistd.h"
 #include "signal.h"
@@ -57,8 +58,7 @@ private:
    bool startCamlProcess();
    bool camlStarted;
    bool unsavedChanges;
-   QString removeComments(QString);
-   QString removeUnusedLineBreaks(QString, bool isPersonalOutput);
+   
    QString currentFile;
    InputZone *inputZone;
    QTextEdit *outputZone;
@@ -104,8 +104,15 @@ private:
    void generateRecentMenu();
    void updateRecent();
    bool highlightTriggered;
-   int graphCount = 0;
-   void parseFileCommand(QString command);
+   int graphCount;
+   void processSetupPrinter(QStringList *commands);
+   void processSubstituteTree(QStringList *commands);
+   void processCommandList(QStringList *commands);
+   void processRegisterTreeType(QStringList *commands);
+   QStringList treevars;
+   QStringList treevalues;
+   void autoLoadML(QString location);
+   bool drawTrees;
    
 signals:
    

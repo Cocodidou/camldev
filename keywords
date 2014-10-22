@@ -2,6 +2,7 @@ let;2
 rec;2
 of;2
 where;2
+when;2
 exception;2
 Failure;2
 in;2
@@ -11,6 +12,7 @@ ref;2
 type;2
 true;5
 false;5
+not;5
 while;3
 for;3
 try;3

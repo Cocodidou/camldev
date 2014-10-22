@@ -61,6 +61,7 @@ protected:
   void highlightBlock(const QString &text);
   
 private:
+  bool escapeSequence = false;
   QTextCharFormat m_formats[LastConstruct + 1];
   bool insideWord(QString str, int start, int len);
   void createKeywordArray(QStringList *lst);

@@ -1,3 +1,19 @@
+// treeparser.cpp - Tree parser and drawer
+// This file is part of LemonCaml - Copyright (C) 2012-2014 Corentin FERRY
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include <treeparser.h>
 
 treeParser::treeParser()
@@ -130,7 +146,8 @@ void treeParser::draw(tree* tr, QImage* img, QPainter* pnt, int baseX, int xpare
    
    //pnt->setPen(QPen(QColor(Qt::black)));
    pnt->setPen(QPen(palette->color(QPalette::Normal, QPalette::HighlightedText)));
-   pnt->drawText(x + 13, y + 18, tr->etiquette);
+   int xtext = (x + 15) - (int)( (float)(tr->etiquette.length()) * 5 / 2 );
+   pnt->drawText(xtext, y + 18, tr->etiquette);
    //pnt->drawText(x + 13, y + 16, QString::number(tr->encombrement));
    
    if(yparent >= 0)

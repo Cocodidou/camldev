@@ -218,6 +218,10 @@ QMainWindow(parent)
    
    this->highlightTriggered = false;
    
+   //Draw trees?
+   this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
+   this->graphCount = 0;
+   
    this->startCamlProcess();
 }
 
@@ -282,23 +286,35 @@ void CamlDevWindow::sendCaml()
       }
       
    }
-   
+   int curPos = 0;
+   int startPos = 0;
+   int endPos = 0;
    QTextCursor cursor = inputZone->textCursor();
-   int curPos = cursor.position();
    QString text = inputZone->toPlainText();
-   //QString text = removeComments(text_r);
-   int startPos = (text.lastIndexOf(";;",curPos)) + 2;
-   if(startPos == 1)
+   if(!cursor.hasSelection())
    {
-      startPos = 0;
+      curPos = cursor.position();
+
+      //QString text = removeComments(text_r);
+      startPos = (text.lastIndexOf(";;",curPos)) + 2;
+      if(startPos == 1)
+      {
+         startPos = 0;
+      }
+      
+      endPos = (text.indexOf(";;",curPos)) + 2;
+      if(endPos == 1) endPos = text.length();
+      if(curPos == text.length()) //avoid sending the whole text
+      {
+         startPos = (text.lastIndexOf(";;",curPos - 2)) + 2;
+         if(startPos == 1) startPos = 0;
+      }
    }
-   
-   int endPos = (text.indexOf(";;",curPos)) + 2;
-   if(endPos == 1) endPos = text.length();
-   if(curPos == text.length()) //avoid sending the whole text
+   else
    {
-      startPos = (text.lastIndexOf(";;",curPos - 2)) + 2;
-      if(startPos == 1) startPos = 0;
+      startPos = cursor.selectionStart();
+      curPos = startPos;
+      endPos = cursor.selectionEnd();
    }
    QString toWrite = text.mid(startPos,endPos - startPos)  + "\n\0";
    toWrite = removeComments(toWrite);
@@ -332,50 +348,55 @@ void CamlDevWindow::readCaml()
    
    QString stdOut = camlProcess->readAllStandardOutput();
    stdOut = removeUnusedLineBreaks(stdOut,false);
-   while(stdOut.indexOf("--LemonCamlCommand--") != -1)
+   if(drawTrees)
    {
-      int j = stdOut.indexOf("--LemonCamlCommand--"); //20
-      int p = stdOut.indexOf("--EndLemonCamlCommand--"); //23
-      if(p == -1)
+      while(stdOut.indexOf("--LemonCamlCommand--") != -1)
       {
-         appendOutput("---LemonCaml error--- Unterminated command: not interpreted", Qt::red);
-         stdOut = stdOut.mid(j + 20);
-      }
-      else
-      {
-         appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
-         QString cmd = stdOut.mid(j + 20, (p - j - 20));
-         parseFileCommand(cmd);
-         stdOut = stdOut.mid(p + 23);
-      }
-   }
-   while(stdOut.indexOf("--LemonTree--") != -1) //TODO: change this!!!! never leave such an absolute type name here; ask the user, instead.
-   {
-      int j = stdOut.indexOf("--LemonTree--"); // 17
-      int p = stdOut.indexOf("--EndLemonTree--"); //20
-      if(p == -1)
-      {
-         appendOutput("---LemonCaml error--- Unterminated tree: not drawn", Qt::red);
-         stdOut = stdOut.mid(j + 17);  
-      }
-      else
-      {
-         appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
-         QString arb = stdOut.mid(j + 13, (p - j - 13));
-         int k = arb.indexOf('(');
-         if(k != -1)
+         int j = stdOut.indexOf("--LemonCamlCommand--"); //20
+         int p = stdOut.indexOf("--EndLemonCamlCommand--"); //23
+         if(p == -1)
          {
-            QString arbString = arb.mid(k);
-            treeParser* tp = new treeParser();
-            QImage* img = tp->parseTree(arbString);
-            QTextCursor cursor = outputZone->textCursor();
-            cursor.insertImage((*img), QString(this->graphCount));
-            outputZone->insertPlainText("\n");
-            this->graphCount++;
+            appendOutput("---LemonCaml error--- Unterminated command: not interpreted\n", Qt::red);
+            stdOut = stdOut.mid(j + 20);
          }
-         stdOut = stdOut.mid(p + 16);
+         else
+         {
+            appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
+            QString cmd = stdOut.mid(j + 20, (p - j - 20));
+            QStringList cmdlist = parseBlockCommand(cmd);
+
+            processCommandList(&cmdlist);
+            stdOut = stdOut.mid(p + 23);
+         }
       }
-      
+      while(stdOut.indexOf("--LemonTree--") != -1) //TODO: change this!!!! never leave such an absolute type name here; ask the user, instead.
+      {
+         int j = stdOut.indexOf("--LemonTree--"); // 17
+         int p = stdOut.indexOf("--EndLemonTree--"); //20
+         if(p == -1)
+         {
+            appendOutput("---LemonCaml error--- Unterminated tree: not drawn\n", Qt::red);
+            stdOut = stdOut.mid(j + 17);  
+         }
+         else
+         {
+            appendOutput(stdOut.left(j),this->palette().color(QPalette::WindowText));
+            QString arb = stdOut.mid(j + 13, (p - j - 13));
+            int k = arb.indexOf('(');
+            if(k != -1)
+            {
+               QString arbString = arb.mid(k);
+               treeParser* tp = new treeParser();
+               QImage* img = tp->parseTree(arbString);
+               QTextCursor cursor = outputZone->textCursor();
+               cursor.insertImage((*img), QString(this->graphCount));
+               outputZone->insertPlainText("\n");
+               this->graphCount++;
+            }
+            stdOut = stdOut.mid(p + 16);
+         }
+         
+      }
    }
    if(stdOut != "") appendOutput(stdOut,this->palette().color(QPalette::WindowText));
    
@@ -398,42 +419,12 @@ void CamlDevWindow::interruptCaml()
 {
    if(camlProcess->state() == QProcess::Running)
    {
-      camlProcess->terminate();
+      //camlProcess->terminate();
       camlProcess->write("\015\012");
    }
 }
 
-QString CamlDevWindow::removeComments(QString str)
-{
-   int pos_l = 0;
-   int pos_r = 0;
-   while(str.indexOf("(*") != -1 || str.indexOf("*)") != -1)
-   {
-      pos_l = str.indexOf("(*");
-      if(pos_l < 0) pos_l = 0;
-      pos_r = str.length() - (str.indexOf("*)") + 2);
-      if(str.indexOf("*)") < 0) pos_r = 0;
-      str = str.left(pos_l) + str.right(pos_r) ;
-   }
-   return str;
-}
 
-QString CamlDevWindow::removeUnusedLineBreaks(QString str, bool isPersonalOutput)
-{
-   if(isPersonalOutput)
-   {
-      while(str.startsWith("\n"))
-      {
-         str = str.right(str.length()-1);
-      }
-   }
-   while(str.indexOf(" \n") != -1 && str.indexOf("\n\n") != -1)
-   {
-      str = str.replace(" \n","\n",Qt::CaseInsensitive);
-      str = str.replace("\n\n","\n",Qt::CaseInsensitive);
-   }
-   return str;
-}
 
 bool CamlDevWindow::saveAs()
 {
@@ -615,6 +606,7 @@ void CamlDevWindow::showSettings()
 {
    CamlDevSettings s(this, this->settings);
    s.exec();
+   this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
    this->generateRecentMenu();
    this->populateRecent();
 }
@@ -754,15 +746,107 @@ void CamlDevWindow::toggleHighlightOn(bool doHighlight)
    hilit->setDocument(doHighlight ? inputZone->document() : 0);
 }
 
-void CamlDevWindow::parseFileCommand(QString command)
+void CamlDevWindow::processCommandList(QStringList *commands)
 {
-   int firstSpace = command.indexOf(' ');
-   if(firstSpace == -1) return;
-   QString cmd = command.left(firstSpace);
-   if(cmd == "SetupPrinter") //setup caml printer
+   appendOutput("---Begin LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
+   while(commands->count() > 0)
    {
-      QString built = "#open \"format\";;\n \
-         install_printer \"" + (command.mid(firstSpace + 1)) + "\";;\n";
-      camlProcess->write(built.toLatin1());
+      if(commands->at(0) == "SetupPrinter")
+         processSetupPrinter(commands);
+      else if(commands->at(0) == "SubstituteTree")
+         processSubstituteTree(commands);
+      else if(commands->at(0) == "RegisterTreeType")
+         processRegisterTreeType(commands);
+      else if(commands->at(0) == "SendCaml" && commands->count() > 1)
+      {
+         commands->removeFirst();
+         QString cm = commands->takeFirst();
+         appendOutput(cm, Qt::blue);
+         camlProcess->write(cm.toLatin1());
+      }
+      else
+      {
+         appendOutput("---LemonCaml error--- Unknown command: " + commands->takeFirst() + "\n", Qt::red);
+      }
+
    }
+   appendOutput("---End LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
+}
+
+void CamlDevWindow::processSetupPrinter(QStringList *commands)
+{
+   if(commands->at(0) == "SetupPrinter") //checking: we might have been called from elsewhere...
+   {
+      commands->removeFirst(); //drop the 1st elt
+      if(commands->count() > 0)
+      {
+         QString built = "#open \"format\";;\n \
+         install_printer \"" + commands->takeFirst() + "\";;\n";
+         appendOutput(built, Qt::blue);
+         camlProcess->write(built.toLatin1());
+      }
+   }
+}
+
+void CamlDevWindow::processSubstituteTree(QStringList *commands)
+{
+   //Syntax: SubstituteTree [var]
+   if(commands->at(0) == "SubstituteTree") //checking: we might have been called from elsewhere...
+   {
+      commands->removeFirst(); //drop the 1st elt
+      QString arg = commands->takeFirst(); //take the 2nd element (our argument)
+      int i = 0;
+      bool found = false;
+      QString subs = "";
+      while(i < treevars.count() && !found)
+      {
+         if(treevars[i] == arg)
+         {
+            found = true;
+            subs = treevalues[i];
+         }
+         i++;
+      }
+      if(!found)
+         appendOutput("---LemonCaml error--- Unknown variable: " + arg, Qt::red);
+      
+      appendOutput(subs, Qt::blue);
+      camlProcess->write(subs.toLatin1());
+
+   }
+}
+
+void CamlDevWindow::processRegisterTreeType(QStringList *commands)
+{
+   //Syntax: RegisterTreeType [type] [var=value]
+   if(commands->at(0) == "RegisterTreeType" && commands->count() >= 3) 
+   {
+      commands->removeFirst(); //drop the 1st elt
+      QString treetype = commands->takeFirst();
+      
+      //clear the existing vars
+      this->treevars.clear();
+      this->treevalues.clear();
+      
+      QString vars = commands->takeFirst();
+      QStringList varsplit = vars.split(";", QString::SkipEmptyParts);
+      for(int i = 0; i < varsplit.count(); i++)
+      {
+         QStringList reg = varsplit[i].split("=", QString::KeepEmptyParts);
+         if(reg[0] != "" && reg.count() == 2 && reg[1] != "")
+         {
+            this->treevars << reg[0];
+            this->treevalues << reg[1];
+         }
+      }
+      QString MLLoc = settings->value("General/treeModelsPath","./graphtree/").toString();
+      this->autoLoadML(MLLoc + treetype + ".ml"); //load the ML file that auto-registers the tree type
+   }
+}
+
+void CamlDevWindow::autoLoadML(QString location)
+{
+   QString built = "include \"" + location + "\";;\n";
+   //appendOutput(built, Qt::blue);
+   camlProcess->write(built.toLatin1());
 }

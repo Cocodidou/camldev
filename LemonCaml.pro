@@ -18,14 +18,16 @@ SOURCES += main.cpp \
     camldevsettings.cpp \
     inputzone.cpp \
     highlighter.cpp \
-    treeparser.cpp
+    treeparser.cpp \
+    common.cpp
 
 HEADERS += \
     camldevwindow.h \
     camldevsettings.h \
     inputzone.h \
     highlighter.h \
-    treeparser.h
+    treeparser.h \
+    common.h
 
 RESOURCES += \
     icons.qrc

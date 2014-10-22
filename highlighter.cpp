@@ -135,12 +135,23 @@ void highlighter::highlightBlock(const QString &text)
          case InString:
             start = pos;
             while (pos < len) {
-               if (text.at(pos) == '"') {
-                  pos += 1;
-                  state = NormalState;
-                  break;
-               } else {
+               if(escapeSequence)
+               {
+                  escapeSequence = false;
                   ++pos;
+               }
+               else
+               {
+                  if (text.at(pos) == '"') {
+                     pos += 1;
+                     state = NormalState;
+                     break;
+                  } else if(text.at(pos) == '\\') {
+                     escapeSequence = true;
+                     ++pos;
+                  } else {
+                     ++pos;
+                  }
                }
             }
             setFormat(start, pos - start,
@@ -149,12 +160,23 @@ void highlighter::highlightBlock(const QString &text)
          case InChar:
             start = pos;
             while (pos < len) {
-               if (text.at(pos) == '`') {
-                  pos += 1;
-                  state = NormalState;
-                  break;
-               } else {
+               if(escapeSequence)
+               {
+                  escapeSequence = false;
                   ++pos;
+               }
+               else
+               {
+                  if (text.at(pos) == '`') {
+                     pos += 1;
+                     state = NormalState;
+                     break;
+                  } else if(text.at(pos) == '\\') {
+                     escapeSequence = true;
+                     ++pos;
+                  } else {
+                     ++pos;
+                  }
                }
             }
             setFormat(start, pos - start,
