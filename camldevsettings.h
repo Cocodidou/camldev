@@ -29,7 +29,10 @@
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QCheckBox>
+#include <QDir>
+#include <QColorDialog>
 #include "common.h"
+#include "colorButton.h"
 
 class CamlDevSettings : public QDialog
 {
@@ -49,21 +52,27 @@ private:
   QWidget *colorsTab;
   
   QLineEdit *camlPathField;
-  QLineEdit *stdlibPathField;
+  QLineEdit *camlArgsField;
   QLineEdit *keywordsPathField;
   QLineEdit *treeModelsPathField;
   QCheckBox *acceptTrees;
   
   QSpinBox *numberField;
   
-
+  QString colorBeingChanged;
+  colorButton* buttonToUpdate;
+  
+  void setColor(QString colorId, QColor color);
   
   
 signals:
     
 public slots:
   void saveSettings();
-    
+  void autoConfDirs();
+  void openColorPicker();
+  void colorChangeValidated(QColor color);
+  
 };
 
 #endif // CAMLDEVSETTINGS_H

@@ -16,7 +16,7 @@
 
 
 print_string "--LemonCamlCommand--SendCaml \"
-#open \"format\";;
+#open \\\"format\\\";;
 let rec generic_print_prodtree print_fun = function
 	| \" SubstituteTree nil SendCaml \" -> ();
 	| \" SubstituteTree nodeexpr SendCaml \" -> (
@@ -35,13 +35,13 @@ and generic_print_prodforest print_fun = function
 	)
 ;;
 let print_prodtree print_fun t = 
-   print_string \"--LemonTree--\";
+   print_string \\\"--LemonTree--\\\";
    generic_print_prodtree print_fun t;
-   print_string \"--EndLemonTree--\";
+   print_string \\\"--EndLemonTree--\\\";
 and print_prodforest print_fun t =
-   print_string \"--LemonTree--\";
+   print_string \\\"--LemonTree--\\\";
    generic_print_prodforest print_fun t;
-   print_string \"--EndLemonTree--\";
+   print_string \\\"--EndLemonTree--\\\";
 ;;
 let print_int_prodtree = print_prodtree print_int
 and print_int_prodforest = print_prodforest print_int

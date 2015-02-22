@@ -71,7 +71,7 @@ QMainWindow(parent)
    {
       QMessageBox::warning(this, "Warning", "Unable to open the keywords file. There will likely be no syntax highlighting.");
    }
-   this->hilit = new highlighter(inputZone->document(), &kwds);
+   this->hilit = new highlighter(inputZone->document(), &kwds, this->settings);
    
    
    
@@ -235,15 +235,15 @@ bool CamlDevWindow::startCamlProcess()
 {
    /* Start the Caml process */
    #ifdef WIN32
-   QString camlLibPath = settings->value("General/stdlibPath", "./caml/lib").toString();
+   QString args = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
    QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString();
-   camlProcess->start(camlProcessPath + " -stdlib \"" + camlLibPath + "\"");
+   camlProcess->start(camlProcessPath + " " + args);
    #else
-   QString camlLibPath = settings->value("General/stdlibPath", "./caml/lib").toString();
+   QString args = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
    QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel").toString();
-   camlProcess->start(camlProcessPath + " -stdlib \"" + camlLibPath + "\"");
+   camlProcess->start(camlProcessPath + " " + args);
    #endif
    return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
 }
@@ -531,6 +531,8 @@ void CamlDevWindow::newFile()
    if(!exitCurrentFile()) return;
    this->stopCaml();
    this->inputZone->clear();
+   this->treevars.clear();
+   this->treevalues.clear();
    this->unsavedChanges = false;
    this->currentFile = "";
    this->outputZone->clear();
@@ -609,6 +611,14 @@ void CamlDevWindow::showSettings()
    this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
    this->generateRecentMenu();
    this->populateRecent();
+   
+   this->highlightTriggered = true; //do not account this setting change for an actual text change
+   hilit->setDocument(NULL);
+   this->hilit->updateColorSettings();
+   
+   this->highlightTriggered = true;
+   hilit->setDocument(this->actionHighlightEnable->isChecked() ? inputZone->document() : 0);
+   
 }
 
 void CamlDevWindow::zoomIn()
@@ -748,7 +758,7 @@ void CamlDevWindow::toggleHighlightOn(bool doHighlight)
 
 void CamlDevWindow::processCommandList(QStringList *commands)
 {
-   appendOutput("---Begin LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
+   //appendOutput("---Begin LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
    while(commands->count() > 0)
    {
       if(commands->at(0) == "SetupPrinter")
@@ -761,7 +771,7 @@ void CamlDevWindow::processCommandList(QStringList *commands)
       {
          commands->removeFirst();
          QString cm = commands->takeFirst();
-         appendOutput(cm, Qt::blue);
+         //appendOutput(cm, Qt::blue);
          camlProcess->write(cm.toLatin1());
       }
       else
@@ -770,7 +780,7 @@ void CamlDevWindow::processCommandList(QStringList *commands)
       }
 
    }
-   appendOutput("---End LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
+   //appendOutput("---End LemonCaml processing---\n", this->palette().color(QPalette::WindowText));
 }
 
 void CamlDevWindow::processSetupPrinter(QStringList *commands)
@@ -782,7 +792,7 @@ void CamlDevWindow::processSetupPrinter(QStringList *commands)
       {
          QString built = "#open \"format\";;\n \
          install_printer \"" + commands->takeFirst() + "\";;\n";
-         appendOutput(built, Qt::blue);
+         //appendOutput(built, Qt::blue);
          camlProcess->write(built.toLatin1());
       }
    }
@@ -810,7 +820,7 @@ void CamlDevWindow::processSubstituteTree(QStringList *commands)
       if(!found)
          appendOutput("---LemonCaml error--- Unknown variable: " + arg, Qt::red);
       
-      appendOutput(subs, Qt::blue);
+      //appendOutput(subs, Qt::blue);
       camlProcess->write(subs.toLatin1());
 
    }
@@ -839,7 +849,7 @@ void CamlDevWindow::processRegisterTreeType(QStringList *commands)
             this->treevalues << reg[1];
          }
       }
-      QString MLLoc = settings->value("General/treeModelsPath","./graphtree/").toString();
+      QString MLLoc = settings->value("General/treeModelsPath","./gentree/").toString();
       this->autoLoadML(MLLoc + treetype + ".ml"); //load the ML file that auto-registers the tree type
    }
 }

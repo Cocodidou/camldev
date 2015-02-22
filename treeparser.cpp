@@ -16,6 +16,14 @@
 
 #include <treeparser.h>
 
+/* In the case of a binary tree, we should set a binary tree struct, that works
+ * the following way:
+ * - the tree is parsed as general trees are, with two subtrees (i.e. two lists
+ *   delimited by [ and ])
+ * - then the left tree and the right tree are being drawn, with a minimal 
+ *   occpancy of two (for empty nodes) or 2^n for n-high nodes.
+ */
+
 treeParser::treeParser()
 {
    palette = new QPalette();

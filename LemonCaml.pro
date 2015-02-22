@@ -27,7 +27,8 @@ HEADERS += \
     inputzone.h \
     highlighter.h \
     treeparser.h \
-    common.h
+    common.h \
+    colorButton.h
 
 RESOURCES += \
     icons.qrc

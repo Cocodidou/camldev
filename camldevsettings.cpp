@@ -26,9 +26,9 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
 #else
   QString camlPath = settings->value("General/camlPath","./caml/CamlLightToplevel").toString();
 #endif
-  QString stdlibPath = settings->value("General/stdlibPath","./caml/lib/").toString();
+  QString camlArgs = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
   QString kwfilePath = settings->value("General/keywordspath", "./keywords").toString();
-  QString treeModelsPath = settings->value("General/treeModelsPath","./graphtree/").toString();
+  QString treeModelsPath = settings->value("General/treeModelsPath","./gentree/").toString();
   bool drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
   
   this->mainLayout = new QVBoxLayout;
@@ -42,8 +42,9 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   this->camlPathField->setWhatsThis("This is the path to the Caml toplevel executable.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
   the place it got compiled in...");
-  this->stdlibPathField = new QLineEdit(stdlibPath,this);
-  this->stdlibPathField->setWhatsThis("This is the path to the Caml library, a set of compiled .zi and .zo files.<br /> \
+  this->camlArgsField = new QLineEdit(camlArgs,this);
+  this->camlArgsField->setWhatsThis("This field contains the arguments passed to the Caml toplevel.<br /> \
+  Usually, this is \"-stdlib\" followed by the path to the Caml library, a set of compiled .zi and .zo files.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
   the place it got compiled in...");
   this->keywordsPathField = new QLineEdit(kwfilePath, this);
@@ -65,15 +66,18 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   
   
   QLabel *camlPathL = new QLabel("CaML top-level executable:",this);
-  QLabel *stdlibPathL = new QLabel("CaML standard library path:",this);
+  QLabel *camlArgsL = new QLabel("CaML arguments:",this);
   QLabel *numberL = new QLabel("Number of recent files to be kept:", this);
   QLabel *keywordsPathL = new QLabel("Keywords file (for syntax highlighting):", this);
   QLabel *treeModelsPathL = new QLabel("Tree models path:", this);
   
+  QPushButton *autoConfButton = new QPushButton("Auto-configure", this);
+  connect(autoConfButton, SIGNAL(clicked()), this, SLOT(autoConfDirs()));
+  
   generalTabLayout->addWidget(camlPathL);
   generalTabLayout->addWidget(camlPathField);
-  generalTabLayout->addWidget(stdlibPathL);
-  generalTabLayout->addWidget(stdlibPathField);
+  generalTabLayout->addWidget(camlArgsL);
+  generalTabLayout->addWidget(camlArgsField);
   generalTabLayout->addWidget(keywordsPathL);
   generalTabLayout->addWidget(keywordsPathField);
   generalTabLayout->addWidget(acceptTrees);
@@ -81,6 +85,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   generalTabLayout->addWidget(treeModelsPathField);
   generalTabLayout->addWidget(numberL);
   generalTabLayout->addWidget(numberField);
+  generalTabLayout->addWidget(autoConfButton);
   
   generalTab->setLayout(generalTabLayout);
   tabWidget->addTab(generalTab, "General");
@@ -104,14 +109,17 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
         //add a BUTTON
         QHBoxLayout *colLayout = new QHBoxLayout;
         colLayout->addWidget(new QLabel(helpers[i], this));
-        QPalette btnPalette;
-        btnPalette.setColor(QPalette::Button, QColor(colors[0], colors[1], colors[2]));
-        QPushButton *btn = new QPushButton("Set...");
-        btn->setPalette(btnPalette);
+        colorButton *btn = new colorButton("Set...", this);
+	btn->setAssociatedColor(colorsToSet[i], colors[0], colors[1], colors[2], helpers[i]);
+	connect(btn, SIGNAL(clicked()), this, SLOT(openColorPicker()));
         colLayout->addWidget(btn);
         colorsTabLayout->addLayout(colLayout);
      }
+     delete[] colors;
   }
+  
+  this->colorBeingChanged = "";
+  this->buttonToUpdate = NULL;
   
   colorsTab->setLayout(colorsTabLayout);
   tabWidget->addTab(colorsTab, "Colors");
@@ -132,7 +140,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
 void CamlDevSettings::saveSettings()
 {
   settings->setValue("General/camlPath", camlPathField->text());
-  settings->setValue("General/stdlibPath", stdlibPathField->text());
+  settings->setValue("General/camlArgs", camlArgsField->text());
   settings->setValue("Recent/number", numberField->value());
   settings->setValue("General/keywordspath", keywordsPathField->text());
   settings->setValue("General/drawTrees", (acceptTrees->checkState() == Qt::Checked)?1:0);
@@ -140,3 +148,66 @@ void CamlDevSettings::saveSettings()
   this->close();
 }
 
+void CamlDevSettings::autoConfDirs()
+{
+   QString curPath = QDir::toNativeSeparators(QDir::currentPath() + QDir::separator());
+#ifdef WIN32
+   QString exe = ".exe";
+#else
+   QString exe = "";
+#endif
+   QString camlPath = curPath + "caml" + QDir::separator() + "CamlLightToplevel" + exe;
+   if(camlPath.indexOf(' ') != -1)
+   {
+      camlPath = "\"" + camlPath + "\"";
+   }
+   this->camlPathField->setText(camlPath);
+   this->camlArgsField->setText("-stdlib \"" + curPath + "caml" + QDir::separator() + "lib\"");
+   this->keywordsPathField->setText(curPath + "keywords");
+   this->treeModelsPathField->setText(curPath + "gentree" + QDir::separator());
+   
+}
+
+/* BEWARE: the following function is converting a QObject to a colorButton, because it implicitly
+ * knows that it IS actually a colorButton. This is a bad practice from the developer: never, ever
+ * trust the sender... */
+
+void CamlDevSettings::openColorPicker()
+{
+  //get sender then open the color picker, then set the required color, etc.
+  colorButton* snd = (colorButton*) QObject::sender();
+  if(snd == NULL)
+      return;
+  
+  this->buttonToUpdate = snd;
+  QColorDialog* dlg = new QColorDialog(this);
+  int red, green, blue;
+  snd->getColor(&red, &green, &blue);
+  
+  dlg->setOption(QColorDialog::DontUseNativeDialog, false);
+  dlg->setCurrentColor(QColor(red, green, blue));
+  
+  this->colorBeingChanged = snd->getColorInfo();
+  
+  connect(dlg, SIGNAL(colorSelected(QColor)), this, SLOT(colorChangeValidated(QColor)));
+  dlg->open();
+}
+
+void CamlDevSettings::colorChangeValidated(QColor color)
+{
+    if(this->colorBeingChanged == "" || this->buttonToUpdate == NULL) //erroneous call
+        return; 
+    
+    this->setColor(colorBeingChanged, color);
+    buttonToUpdate->updateColor(color);
+}
+
+void CamlDevSettings::setColor(QString colorId, QColor color) //is bool useful?
+{
+    int r, g, b;
+    color.getRgb(&r, &g, &b, NULL);
+    
+    QString colorStr = QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
+    settings->setValue("Colors/"+colorId, colorStr);
+    
+}

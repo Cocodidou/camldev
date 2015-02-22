@@ -1,8 +1,32 @@
 #!/bin/bash
 
-# Get the archives - source from the INRIA and patch from Jean Mouric
-wget http://caml.inria.fr/pub/distrib/caml-light-0.75//cl75unix.tar.gz
-wget http://jean.mouric.pagesperso-orange.fr/archives/PatchCl75_2014_04_30.zip
+# Parse command line arguments
+while :
+do
+    case "$1" in
+    -n|--no-delete)
+    NODELETE="true"
+    shift
+    ;;
+    -d|--no-download)  
+    NODOWNLOAD="true"
+    shift
+    ;;
+    -s|--initial-config)  
+    INITIALCONFIG="true"
+    shift
+    ;;
+    *)
+    break
+    ;;
+   esac
+done
+
+if [ ! "$NODOWNLOAD" = "true" ]; then
+   # Get the archives - source from the INRIA and patch from Jean Mouric
+   wget http://caml.inria.fr/pub/distrib/caml-light-0.75//cl75unix.tar.gz
+   wget http://jean.mouric.pagesperso-orange.fr/archives/PatchCl75_2014_04_30.zip
+fi
 
 # Extract them and apply the patch
 tar -xf ./cl75unix.tar.gz
@@ -58,7 +82,7 @@ if [ -a "./libunix.a" ]; then
    cp ./*.a ../../src/lib/
    UNIXBUILT="true"
    APPEND=$APPEND" unix.zo libunix.a"
-   CCOPT=$CCOPT"-ccopt -L/usr/lib -lX11 -lpthread"
+   CCOPT=$CCOPT"-ccopt -L/usr/lib -lpthread"
    echo "Built the Unix package"
 else
    SUMMARY=$SUMMARY"Building the Unix package failed - could not build the graphics package either\n"
@@ -74,6 +98,7 @@ if [ $UNIXBUILT = "true" ]; then
       cp ./*.zo ../../src/lib/
       cp ./*.a ../../src/lib/
       APPEND=$APPEND" graphics.zo libgraph.a"
+      CCOPT=$CCOPT" -lX11"
       echo "Built the graphics package"
    else
       SUMMARY=$SUMMARY"Building the graphics package failed, yet the unix library has been successfully built\n"
@@ -134,21 +159,26 @@ cd caml
 chmod +x ./CamlLightToplevel
 cd ..
 
-# Delete the source archives and the dirs
-rm cl75unix.tar.gz
-rm -rf ./cl75
-rm PatchCl75_2014_04_30.zip
-rm -rf rm PatchCl75_2014_04_30
-rm archi.txt
-
-# Configure LemonCaml
-if [ ! -e  ~/.config/Cocodidou ]; then
-   mkdir ~/.config/Cocodidou
+if [ ! "$NODELETE" = "true" ]; then
+   # Delete the source archives and the dirs
+   rm cl75unix.tar.gz
+   rm -rf ./cl75
+   rm PatchCl75_2014_04_30.zip
+   rm -rf rm PatchCl75_2014_04_30
+   rm archi.txt
 fi
-echo "[%General]" > ~/.config/Cocodidou/LemonCaml.conf
-echo "camlPath=$(pwd)/caml/CamlLightToplevel" >> ~/.config/Cocodidou/LemonCaml.conf
-echo "keywordspath=$(pwd)/keywords" >> ~/.config/Cocodidou/LemonCaml.conf
-echo "stdlibPath=$(pwd)/caml/lib" >> ~/.config/Cocodidou/LemonCaml.conf
+
+if [ "$INITIALCONFIG" = "true" ]; then
+   # Configure LemonCaml
+   if [ ! -e  ~/.config/Cocodidou ]; then
+      mkdir ~/.config/Cocodidou
+   fi
+   echo "[%General]" > ~/.config/Cocodidou/LemonCaml.conf
+   echo "camlPath=$(pwd)/caml/CamlLightToplevel" >> ~/.config/Cocodidou/LemonCaml.conf
+   echo "keywordspath=$(pwd)/keywords" >> ~/.config/Cocodidou/LemonCaml.conf
+   echo "stdlibPath=$(pwd)/caml/lib" >> ~/.config/Cocodidou/LemonCaml.conf
+   echo "Configured LemonCaml."
+fi
 
 if [ "$SUMMARY" = "" ]; then
    echo "Everything went right, Caml should be up and running."

@@ -16,51 +16,44 @@
 
 #include "highlighter.h"
 
-highlighter::highlighter(QTextDocument *document, QStringList *kw)
+highlighter::highlighter(QTextDocument *document, QStringList *kw, QSettings *set)
 : QSyntaxHighlighter(document)
 {
-   QTextCharFormat variableDecFormat;
-   variableDecFormat.setForeground(QColor(186, 19, 155));
-   // variableDecFormat.setFontWeight(QFont::Bold);
-   setFormatFor(VariableDec, variableDecFormat);
+  this->settings = set;
+
+  this->updateColorSettings();
+  createKeywordArray(kw);
    
-   QTextCharFormat loopFormat;
-   loopFormat.setForeground(QColor(0, 163, 49));
-   loopFormat.setFontWeight(QFont::Bold);
-   setFormatFor(Loop, loopFormat);
-   
-   QTextCharFormat commentFormat;
-   commentFormat.setForeground(QColor(181, 181, 181));
-   commentFormat.setFontItalic(true);
-   setFormatFor(Comment, commentFormat);
-   
-   QTextCharFormat preprocFormat;
-   preprocFormat.setForeground(QColor(0, 224, 49));
-   preprocFormat.setFontItalic(true);
-   setFormatFor(Preprocessor, preprocFormat);
-   
-   QTextCharFormat booleanFormat;
-   booleanFormat.setForeground(QColor(0, 75, 255));
-   booleanFormat.setFontWeight(QFont::Bold);
-   setFormatFor(Boolean, booleanFormat);
-   
-   QTextCharFormat stringFormat;
-   stringFormat.setForeground(QColor(255, 0, 0));
-   setFormatFor(String, stringFormat);
-   
-   QTextCharFormat charFormat;
-   charFormat.setForeground(QColor(255, 0, 0));
-   setFormatFor(Char, charFormat);
-   
-   QTextCharFormat builtInTypeFormat;
-   builtInTypeFormat.setForeground(QColor(0, 21, 156));
-   setFormatFor(BuiltInType, builtInTypeFormat);
-   
-   QTextCharFormat builtInFunctionFormat;
-   builtInFunctionFormat.setForeground(QColor(0, 21, 156));
-   setFormatFor(BuiltInFunction, builtInFunctionFormat);
-   
-   createKeywordArray(kw);
+  this->escapeSequence = false;
+}
+
+void highlighter::updateColorSettings()
+{
+  //called after settings are changed or at build-up
+  QStringList colorsToSet;
+  colorsToSet << "variableDec" << "loop" << "comment" << "preproc" << "boolean" << "string" << "char" << "builtInType" << "builtInFunction";
+  QStringList defaultColors;
+  defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156";
+  QStringList helpers;
+  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions";
+  bool bold[] = { false, true, false, false, true, false, false, false, false };
+  bool italics[] = { false, false, true, false, false, false, false, false, false };
+  
+  
+  for(int i = 0; i < colorsToSet.count(); i++)
+  {
+     QString curColor = settings->value("Colors/" + colorsToSet[i], defaultColors[i]).toString();
+     int* colors = colorFromString(curColor);
+     if(colors != NULL)
+     {
+        QTextCharFormat charFormat;
+        charFormat.setForeground(QColor(colors[0], colors[1], colors[2]));
+        if(bold[i]) charFormat.setFontWeight(QFont::Bold);
+        if(italics[i]) charFormat.setFontItalic(true);
+        setFormatFor((Construct)i, charFormat);
+     }
+     delete[] colors;
+  } 
 }
 
 void highlighter::setFormatFor(Construct construct, const QTextCharFormat &format)

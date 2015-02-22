@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QSyntaxHighlighter>
+#include <QSettings>
+#include "common.h"
 
 class highlighter : public QSyntaxHighlighter
 {
@@ -22,19 +24,19 @@ class highlighter : public QSyntaxHighlighter
   
 public:
   enum Construct {
-    BuiltInType,
-    BuiltInFunction,
     VariableDec,
     Loop,
     Comment,
-    Boolean,
-    Char,
-    String,
     Preprocessor,
-    LastConstruct = Preprocessor
+    Boolean,
+    String,
+    Char,
+    BuiltInType,
+    BuiltInFunction,
+    LastConstruct = BuiltInFunction
   };
   
-  highlighter(QTextDocument *document, QStringList *kw);
+  highlighter(QTextDocument *document, QStringList *kw, QSettings *settings);
   
   void setFormatFor(Construct construct,
 		    const QTextCharFormat &format);
@@ -46,8 +48,7 @@ public:
     Construct type;
   };
   
-  keyword *keywords;
-  int numKW;
+  void updateColorSettings();
   
 protected:
   enum State {
@@ -59,11 +60,14 @@ protected:
   };
   
   void highlightBlock(const QString &text);
+
   
 private:
-  bool escapeSequence = false;
+  bool escapeSequence;
   QTextCharFormat m_formats[LastConstruct + 1];
   bool insideWord(QString str, int start, int len);
   void createKeywordArray(QStringList *lst);
-  
+  keyword *keywords;
+  int numKW;
+  QSettings *settings;
 };
