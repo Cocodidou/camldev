@@ -32,3 +32,10 @@ HEADERS += \
 
 RESOURCES += \
     icons.qrc
+
+lemoncaml.files += lemoncaml
+lemoncaml.path = /usr/bin/
+
+INSTALLS += lemoncaml
+
+RC_FILE = progicon.rc

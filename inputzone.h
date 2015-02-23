@@ -27,10 +27,6 @@ public:
     explicit InputZone();
     void keyPressEvent(QKeyEvent *event);
 signals:
-    void controlEnterPressed();
-    void controlSPressed();
-    void controlOPressed();
-    void controlPPressed();
     void controlPlusPressed();
     void controlMinusPressed();
 public slots:

@@ -31,6 +31,7 @@
 #include <QTextCodec>
 #include <QSplitter>
 #include <QPrinter>
+#include <QKeySequence>
 #include "treeparser.h"
 #include "inputzone.h"
 #include "highlighter.h"
@@ -84,6 +85,8 @@ private:
    QAction *actionAbout;
    QAction *actionAboutQt;
    QAction *actionHighlightEnable;
+   QAction *actionZoomIn;
+   QAction *actionZoomOut;
    QAction **recent = NULL;
    QString* recentFiles;
    int numRecentFiles;
