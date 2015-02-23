@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Locations
+PATCHJM=PatchCl75_2014_11_24
+
+
 # Parse command line arguments
 while :
 do
@@ -25,16 +29,16 @@ done
 if [ ! "$NODOWNLOAD" = "true" ]; then
    # Get the archives - source from the INRIA and patch from Jean Mouric
    wget http://caml.inria.fr/pub/distrib/caml-light-0.75//cl75unix.tar.gz
-   wget http://jean.mouric.pagesperso-orange.fr/archives/PatchCl75_2014_04_30.zip
+   wget http://jean.mouric.pagesperso-orange.fr/archives/$PATCHJM.zip
 fi
 
 # Extract them and apply the patch
 tar -xf ./cl75unix.tar.gz
-unzip ./PatchCl75_2014_04_30.zip
-cd PatchCl75_2014_04_30
+unzip ./$PATCHJM.zip
+cd $PATCHJM
 tar -xf ./dif.tar.gz
 cd ..
-patch -s -p0  < ./PatchCl75_2014_04_30/dif.txt || exit 1
+patch -s -p0  < ./$PATCHJM/dif.txt || exit 1
 cd cl75
 cd src
 
@@ -76,7 +80,7 @@ SUMMARY=""
 # Build the "unix" package, required for the "graphics" package below
 cd libunix
 make
-if [ -a "./libunix.a" ]; then
+if [ $? == 0 ] && [ -a "./libunix.a" ]; then
    cp ./unix.zi ../../src/lib/
    cp ./unix.zo ../../src/lib/
    cp ./*.a ../../src/lib/
@@ -85,7 +89,7 @@ if [ -a "./libunix.a" ]; then
    CCOPT=$CCOPT"-ccopt -L/usr/lib -lpthread"
    echo "Built the Unix package"
 else
-   SUMMARY=$SUMMARY"Building the Unix package failed - could not build the graphics package either\n"
+   SUMMARY=$SUMMARY"Building the Unix package failed - could not build the graphics package either. "
 fi
 cd ..
 
@@ -93,7 +97,7 @@ cd ..
 if [ $UNIXBUILT = "true" ]; then
    cd libgraph-unix
    make
-   if [ -a "./libgraph.a" ]; then
+   if [ $? == 0 ] && [ -a "./libgraph.a" ]; then
       cp ./*.zi ../../src/lib/
       cp ./*.zo ../../src/lib/
       cp ./*.a ../../src/lib/
@@ -101,7 +105,7 @@ if [ $UNIXBUILT = "true" ]; then
       CCOPT=$CCOPT" -lX11"
       echo "Built the graphics package"
    else
-      SUMMARY=$SUMMARY"Building the graphics package failed, yet the unix library has been successfully built\n"
+      SUMMARY=$SUMMARY"Building the graphics package failed, yet the unix library has been successfully built. "
    fi
    cd ..
 fi
@@ -110,14 +114,14 @@ fi
 cd libnum
 sed -i "s/CAMLLIBR=camllibr/CAMLLIBR=camlrun $(echo $LIBDIR | sed "s/\//\\\\\//g")\/camllibr/g" ./Makefile
 make
-if [ -a "./libnums.a" ]; then
+if [ $? == 0 ] && [ -a "./libnums.a" ]; then
    cp ./*.zi ../../src/lib/
    cp ./*.zo ../../src/lib/
    cp ./*.a ../../src/lib/
    APPEND=$APPEND" int_misc.zo fnat.zo nat.zo big_int.zo arith_flags.zo ratio.zo num.zo arith_status.zo numprint.zo libnums.a"
    echo "Built the num package"
 else
-   SUMMARY=$SUMMARY"Building the num package failed\n"
+   SUMMARY=$SUMMARY"Building the num package failed. "
 fi
 cd ..
 
@@ -125,14 +129,14 @@ cd ..
 # Build the "str" package
 cd libstr
 make
-if [ -a "./libstr.a" ]; then
+if [ $? == 0 ] && [ -a "./libstr.a" ]; then
    cp ./*.zi ../../src/lib/
    cp ./*.zo ../../src/lib/
    cp ./*.a ../../src/lib/
    APPEND=$APPEND" str.zo libstr.a"
    echo "Built the str package"
 else
-   SUMMARY=$SUMMARY"Building the str package failed\n"
+   SUMMARY=$SUMMARY"Building the str package failed. "
 fi
 cd ..
 
@@ -163,8 +167,8 @@ if [ ! "$NODELETE" = "true" ]; then
    # Delete the source archives and the dirs
    rm cl75unix.tar.gz
    rm -rf ./cl75
-   rm PatchCl75_2014_04_30.zip
-   rm -rf rm PatchCl75_2014_04_30
+   rm $PATCHJM.zip
+   rm -rf $PATCHJM
    rm archi.txt
 fi
 
