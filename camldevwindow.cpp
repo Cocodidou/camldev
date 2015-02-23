@@ -93,34 +93,44 @@ QMainWindow(parent)
    /* The actions */
    this->actionNew = new QAction("New",this);
    this->actionNew->setIcon(QIcon(":/new.png"));
+   this->actionNew->setShortcut(QKeySequence(QKeySequence::New));
    this->actionOpen = new QAction("Open",this);
    this->actionOpen->setIcon(QIcon(":/open.png"));
+   this->actionOpen->setShortcut(QKeySequence(QKeySequence::Open));
    this->actionSaveAs = new QAction("Save As",this);
    this->actionSaveAs->setIcon(QIcon(":/saveas.png"));
+   this->actionSaveAs->setShortcut(QKeySequence(QKeySequence::SaveAs));
    this->actionSave = new QAction("Save",this);
    this->actionSave->setIcon(QIcon(":/save.png"));
+   this->actionSave->setShortcut(QKeySequence(QKeySequence::Save));
    this->actionAutoIndent = new QAction("Auto-indent code",this);
    this->actionPrint = new QAction("Print",this);
    this->actionPrint->setIcon(QIcon(":/print.png"));
+   this->actionPrint->setShortcut(QKeySequence(QKeySequence::Print));
    this->actionClearOutput = new QAction("Clear output",this);
    this->actionQuit = new QAction("Quit",this);
    this->actionQuit->setIcon(QIcon(":/exit.png"));
+   this->actionQuit->setShortcut(QKeySequence(QKeySequence::Quit));
    
    this->actionUndo = new QAction("Undo",this);
    this->actionUndo->setIcon(QIcon(":/undo.png"));
+   this->actionUndo->setShortcut(QKeySequence(QKeySequence::Undo));
    this->actionRedo = new QAction("Redo",this);
    this->actionRedo->setIcon(QIcon(":/redo.png"));
+   this->actionRedo->setShortcut(QKeySequence(QKeySequence::Redo));
    this->actionDelete = new QAction("Delete",this);
    this->actionChangeInputFont = new QAction("Change Input Font",this);
    this->actionChangeOutputFont = new QAction("Change Output Font",this);
    
    this->actionSendCaml = new QAction("Send Code to Caml",this);
    this->actionSendCaml->setIcon(QIcon(":/sendcaml.png"));
+   this->actionSendCaml->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return));
    this->actionInterruptCaml = new QAction("Interrupt Caml",this);
    this->actionInterruptCaml->setIcon(QIcon(":/interrupt.png"));
    this->actionStopCaml = new QAction("Stop Caml",this);
    this->actionStopCaml->setIcon(QIcon(":/stopcaml.png"));
    this->actionShowSettings = new QAction("Settings",this);
+   this->actionShowSettings->setShortcut(QKeySequence(QKeySequence::Preferences));
    
    this->actionAbout = new QAction("About LemonCaml...",this);
    this->actionAboutQt = new QAction("About Qt...",this);
@@ -129,6 +139,11 @@ QMainWindow(parent)
    this->actionHighlightEnable->setIcon(QIcon(":/highlight.png"));
    this->actionHighlightEnable->setCheckable(true);
    this->actionHighlightEnable->setChecked(true);
+   
+   this->actionZoomIn = new QAction("Zoom in", this);
+   this->actionZoomIn->setShortcut(QKeySequence(QKeySequence::ZoomIn));
+   this->actionZoomOut = new QAction("Zoom out", this);
+   this->actionZoomOut->setShortcut(QKeySequence(QKeySequence::ZoomOut));
    
    /* The toolbar */
    this->toolbar = new QToolBar("Tools",this);
@@ -167,6 +182,8 @@ QMainWindow(parent)
    this->menuEdit->addAction(actionHighlightEnable);
    this->menuEdit->addAction(actionChangeInputFont);
    this->menuEdit->addAction(actionChangeOutputFont);
+   this->menuEdit->addAction(actionZoomIn);
+   this->menuEdit->addAction(actionZoomOut);
    
    this->menuCaml = this->menuBar()->addMenu("Caml");
    this->menuCaml->addAction(actionSendCaml);
@@ -187,12 +204,6 @@ QMainWindow(parent)
    connect(camlProcess,SIGNAL(started()),this,SLOT(camlOK()));
    connect(actionInterruptCaml,SIGNAL(triggered()),this,SLOT(interruptCaml()));
    
-   connect(inputZone,SIGNAL(controlEnterPressed()),this,SLOT(sendCaml()));
-   connect(inputZone,SIGNAL(controlSPressed()),this,SLOT(save()));
-   connect(inputZone,SIGNAL(controlOPressed()),this,SLOT(open()));
-   connect(inputZone,SIGNAL(controlPPressed()),this,SLOT(print()));
-   connect(inputZone,SIGNAL(controlPlusPressed()),this,SLOT(zoomIn()));
-   connect(inputZone,SIGNAL(controlMinusPressed()),this,SLOT(zoomOut()));
    
    connect(actionSave,SIGNAL(triggered()),this,SLOT(save()));
    connect(actionSaveAs,SIGNAL(triggered()),this,SLOT(saveAs()));
@@ -209,6 +220,10 @@ QMainWindow(parent)
    connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
    connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
    connect(actionHighlightEnable,SIGNAL(toggled(bool)),this,SLOT(toggleHighlightOn(bool)));
+   
+   connect(actionZoomIn,SIGNAL(triggered()),this,SLOT(zoomIn()));
+   connect(actionZoomOut,SIGNAL(triggered()),this,SLOT(zoomOut()));
+   
    
    connect(actionAbout,SIGNAL(triggered()),this,SLOT(about()));
    connect(actionAboutQt,SIGNAL(triggered()),this,SLOT(aboutQt()));
@@ -486,7 +501,7 @@ void CamlDevWindow::openFile(QString file)
    QFile f(file);
    if(!f.open(QFile::ReadOnly))
    {
-      QMessageBox::warning(this,"Warning","Unable to open file !!");
+      QMessageBox::warning(this,"Warning","Unable to open file " + file + "!");
       return;
    }
    //QString curFile = currentFile;
