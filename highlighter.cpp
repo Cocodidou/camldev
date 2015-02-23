@@ -69,6 +69,17 @@ void highlighter::highlightBlock(const QString &text)
    int start = 0;
    int pos = 0;
    
+   foreach (const HighlightingRule &rule, highlightingRules) {
+      QRegExp expression(rule.pattern);
+      int index = expression.indexIn(text);
+      while (index >= 0) {
+         int length = expression.matchedLength();
+         QTextCharFormat fmt = m_formats[rule.format];
+         setFormat(index, length, fmt);
+         index = expression.indexIn(text, index + length);
+      }
+   }
+   
    while (pos < len) {
       switch (state) {
          case NormalState:
@@ -93,21 +104,9 @@ void highlighter::highlightBlock(const QString &text)
                   ++pos;
                   break;
                } else {
-                  bool foundKW = false;
-                  int i = 0;
-                  while(i < numKW && !foundKW)
-                  {
-                     int keywlen = keywords[i].word.length();
-                     if(text.mid(pos, keywlen) == keywords[i].word && !insideWord(text, pos, keywlen))
-                     {
-                        setFormat(pos, keywlen, m_formats[keywords[i].type]);
-                        pos += keywlen;
-                        foundKW = true;
-                     }
-                     i++;
-                  }
-                  if(!foundKW)
-                     ++pos;
+                  //keywords are better handled elsewhere
+                  ++pos;
+
                }
             }
             break;
@@ -193,6 +192,7 @@ void highlighter::highlightBlock(const QString &text)
    }
    
    setCurrentBlockState(state);
+   
 }
 
 bool highlighter::insideWord(QString str, int start, int len)
@@ -217,21 +217,32 @@ bool highlighter::insideWord(QString str, int start, int len)
 void highlighter::createKeywordArray(QStringList *lst)
 {
    int len = lst->count();
-   keywords = new keyword[len];
+   numKW = len;
+   
+   HighlightingRule rule;
+   
    for(int i = 0; i < len; i++)
    {
+      if(lst->at(i).at(0) == '#') //comment
+         continue;
+      
       QStringList spl = lst->at(i).split(";", QString::SkipEmptyParts);
       if(spl.count() == 2)
       {
-         keywords[i].word = spl[0];
-         keywords[i].type = static_cast<Construct>(spl[1].toInt());
+         //handle special chars in regexps 
+         QString cleanPattern = QRegExp::escape(spl[0]);
+         
+         bool hasLetters = false;
+         QRegExp keywordWithLetters("[a-zA-z]");
+         if(keywordWithLetters.indexIn(spl[0]) >= 0)
+            hasLetters = true;
+         
+         QString pattern = (hasLetters ? "\\b" : "") + cleanPattern + (hasLetters ? "\\b" : "");
+         rule.pattern = QRegExp(pattern);
+         rule.format =  static_cast<Construct>(spl[1].toInt());
+         highlightingRules.append(rule);
       }
-      else //skip
-      {
-         keywords[i].word = "";
-         keywords[i].type = BuiltInType; //any...
-      }
+
    }
-   numKW = len;
    
 }

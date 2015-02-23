@@ -256,8 +256,9 @@ void CamlDevWindow::updateCamlStatus(QProcess::ProcessState newState)
       case QProcess::Starting:
          if(camlStarted)
          {
-            this->outputZone->setTextColor(this->palette().color(QPalette::WindowText));
-            this->outputZone->append("Caml Stopped\n-----------\n\n");
+            //this->outputZone->setTextColor(this->palette().color(QPalette::WindowText));
+            //this->outputZone->append("Caml Stopped\n-----------\n\n");
+            appendOutput("\nCaml Stopped\n-----------\n\n",this->palette().color(QPalette::WindowText));
             camlStarted = false;
          }
          break;
@@ -282,7 +283,7 @@ void CamlDevWindow::sendCaml()
       camlProcess->waitForStarted();
       if(!camlStarted)
       {
-         QMessageBox::warning(this,"Warning","Unable to start Caml toplevel!!");
+         QMessageBox::warning(this,"Warning","Unable to start Caml toplevel!! Please go to Caml -> Settings to set its path.");
       }
       
    }
@@ -428,7 +429,7 @@ void CamlDevWindow::interruptCaml()
 
 bool CamlDevWindow::saveAs()
 {
-   QString fileName = QFileDialog::getSaveFileName(this,"Save As...","");
+   QString fileName = QFileDialog::getSaveFileName(this,"Save As...","","Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)");
    if(fileName.isEmpty())
    {
       return false;
@@ -468,7 +469,8 @@ bool CamlDevWindow::saveFile(QString file)
 
 void CamlDevWindow::open()
 {
-   QString fileName = QFileDialog::getOpenFileName(this,"Open","");
+   QString fileName = QFileDialog::getOpenFileName(this,"Open","","Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)");
+         
    if(!fileName.isEmpty())
    {
       //currentFile = fileName;

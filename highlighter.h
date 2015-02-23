@@ -43,10 +43,13 @@ public:
   QTextCharFormat formatFor(Construct construct) const
   { return m_formats[construct]; }
   
-  struct keyword {
-    QString word;
-    Construct type;
-  };
+  
+    struct HighlightingRule
+    {
+        QRegExp pattern;
+        Construct format;
+    };
+    
   
   void updateColorSettings();
   
@@ -63,11 +66,11 @@ protected:
 
   
 private:
+    QVector<HighlightingRule> highlightingRules;
   bool escapeSequence;
   QTextCharFormat m_formats[LastConstruct + 1];
   bool insideWord(QString str, int start, int len);
   void createKeywordArray(QStringList *lst);
-  keyword *keywords;
   int numKW;
   QSettings *settings;
 };
