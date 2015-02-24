@@ -425,18 +425,23 @@ void CamlDevWindow::camlOK()
 
 void CamlDevWindow::stopCaml()
 {
-   //    this->camlStarted = false;
    camlProcess->close();
-   
-   
 }
 
 void CamlDevWindow::interruptCaml()
 {
    if(camlProcess->state() == QProcess::Running)
    {
-      //camlProcess->terminate();
-      camlProcess->write("\015\012");
+#ifndef WIN32
+      kill(camlProcess->pid(), SIGINT);
+#else
+   
+appendOutput("\n\nWARNING: The \"Interrupt Caml\" command is not available under Windows.\n\
+It will not be available until QProcess handles process group IDs (let's say, never). More info at:\n\
+http://stackoverflow.com/questions/22255851/sending-ctrlc-event-to-a-process-launched-using-qprocess-on-windows\n\n\
+Please use \"Stop Caml\" instead, then send your code back to Caml.\n", Qt::red);
+#endif
+
    }
 }
 
