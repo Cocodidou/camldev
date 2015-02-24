@@ -38,8 +38,10 @@
 #include "camldevsettings.h"
 
 #ifndef WIN32
-#include "unistd.h"
-#include "signal.h"
+#include <unistd.h>
+#include <signal.h>
+#else
+#include <windows.h>
 #endif
 
 
