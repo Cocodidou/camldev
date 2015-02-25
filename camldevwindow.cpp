@@ -42,7 +42,13 @@ QMainWindow(parent)
    this->move(settings->value("Pos/x",0).toInt(), settings->value("Pos/y",0).toInt());
    this->setWindowFlags( (windowFlags() | Qt::CustomizeWindowHint));
    
-   QString iFont = settings->value("Input/Font", "").toString();
+#ifndef WIN32
+   QString defaultFont = "";
+#else
+   QString defaultFont = "Courier New,10,-1,5,50,0,0,0,0,0";
+#endif
+   
+   QString iFont = settings->value("Input/Font", defaultFont).toString();
    QFont inputFont;
    inputFont.fromString(iFont);
    this->inputZone->setFont(inputFont);
@@ -78,8 +84,10 @@ QMainWindow(parent)
    {
       this->hilit->setDocument(NULL);
    }
+
+
    
-   QString oFont = settings->value("Output/Font", "").toString();
+   QString oFont = settings->value("Output/Font", defaultFont).toString();
    QFont outputFont;
    outputFont.fromString(oFont);
    this->outputZone->setFont(outputFont);
@@ -935,7 +943,7 @@ void CamlDevWindow::handleLineBreak()
    //to be ameliorated by analyzing the previous line
    QString toAppend = "\n";
    QTextCursor cursor = inputZone->textCursor();
-   QString line = inputZone->textCursor().block().text().toAscii();
+   QString line = inputZone->textCursor().block().text();//.toAscii();
    
    QString beg = line.left(cursor.positionInBlock());
    QString end = line.mid(cursor.positionInBlock());
@@ -950,7 +958,7 @@ void CamlDevWindow::handleLineBreak()
 
 void CamlDevWindow::unindent()
 {
-   QString line = inputZone->textCursor().block().text().toAscii();
+   QString line = inputZone->textCursor().block().text();//.toAscii();
    
    if(line.at(0) == '\t' || line.at(0) == ' ')
       line = line.mid(1);
