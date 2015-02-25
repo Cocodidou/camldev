@@ -26,9 +26,13 @@ class InputZone : public QTextEdit
 public:
     explicit InputZone();
     void keyPressEvent(QKeyEvent *event);
+    void setHandleEnter(bool ent) { handleEnter = ent; }
+    bool getHandleEnter() { return handleEnter; }
+private:
+   bool handleEnter;
 signals:
-    void controlPlusPressed();
-    void controlMinusPressed();
+    void returnPressed();
+    void unindentKeyStrokePressed();
 public slots:
     
 };

@@ -19,18 +19,18 @@
 InputZone::InputZone() :
     QTextEdit()
 {
-
+   handleEnter = false;
 }
 
 void InputZone::keyPressEvent(QKeyEvent *event)
 {
-    if(event->key()== Qt::Key_Plus && event->modifiers() & Qt::ControlModifier)
+    if(this->handleEnter && event->key()== Qt::Key_Return && event->modifiers() == 0)
     {
-        emit controlPlusPressed();
+       emit returnPressed();
     }
-    else if(event->key()== Qt::Key_Minus && event->modifiers() & Qt::ControlModifier )
+    else if(event->key() == Qt::Key_Backtab)// && event->modifiers() & Qt::ShiftModifier)
     {
-        emit controlMinusPressed();
+       emit unindentKeyStrokePressed();
     }
     else
     {

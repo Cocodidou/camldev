@@ -42,7 +42,13 @@ QMainWindow(parent)
    this->move(settings->value("Pos/x",0).toInt(), settings->value("Pos/y",0).toInt());
    this->setWindowFlags( (windowFlags() | Qt::CustomizeWindowHint));
    
-   QString iFont = settings->value("Input/Font", "").toString();
+#ifndef WIN32
+   QString defaultFont = "";
+#else
+   QString defaultFont = "Courier New,10,-1,5,50,0,0,0,0,0";
+#endif
+   
+   QString iFont = settings->value("Input/Font", defaultFont).toString();
    QFont inputFont;
    inputFont.fromString(iFont);
    this->inputZone->setFont(inputFont);
@@ -72,10 +78,16 @@ QMainWindow(parent)
       QMessageBox::warning(this, "Warning", "Unable to open the keywords file. There will likely be no syntax highlighting.");
    }
    this->hilit = new highlighter(inputZone->document(), &kwds, this->settings);
+   bool isHighlighting = (settings->value("Input/syntaxHighlight",1).toInt() == 1);
    
+   if(!isHighlighting)
+   {
+      this->hilit->setDocument(NULL);
+   }
+
+
    
-   
-   QString oFont = settings->value("Output/Font", "").toString();
+   QString oFont = settings->value("Output/Font", defaultFont).toString();
    QFont outputFont;
    outputFont.fromString(oFont);
    this->outputZone->setFont(outputFont);
@@ -86,6 +98,9 @@ QMainWindow(parent)
    split->addWidget(this->inputZone);
    split->addWidget(this->outputZone);
    split->showMaximized();
+   
+   if(settings->value("Input/indentOnFly",0).toInt() == 1)
+      inputZone->setHandleEnter(true);
    
    /* the printer*/
    this->printer = new QPrinter(QPrinter::HighResolution);
@@ -103,7 +118,12 @@ QMainWindow(parent)
    this->actionSave = new QAction("Save",this);
    this->actionSave->setIcon(QIcon(":/save.png"));
    this->actionSave->setShortcut(QKeySequence(QKeySequence::Save));
-   this->actionAutoIndent = new QAction("Auto-indent code",this);
+   this->actionAutoIndent = new QAction("Indent code",this);
+   this->actionAutoIndent->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
+   this->actionFollowCursor = new QAction("Indent code while typing",this);
+   this->actionFollowCursor->setCheckable(true);
+   this->actionFollowCursor->setChecked(inputZone->getHandleEnter());
+   this->actionFollowCursor->setIcon(QIcon(":/autoindent.png"));
    this->actionPrint = new QAction("Print",this);
    this->actionPrint->setIcon(QIcon(":/print.png"));
    this->actionPrint->setShortcut(QKeySequence(QKeySequence::Print));
@@ -138,7 +158,7 @@ QMainWindow(parent)
    this->actionHighlightEnable = new QAction("Enable syntax highlighting", this);
    this->actionHighlightEnable->setIcon(QIcon(":/highlight.png"));
    this->actionHighlightEnable->setCheckable(true);
-   this->actionHighlightEnable->setChecked(true);
+   this->actionHighlightEnable->setChecked(isHighlighting);
    
    this->actionZoomIn = new QAction("Zoom in", this);
    this->actionZoomIn->setShortcut(QKeySequence(QKeySequence::ZoomIn));
@@ -160,6 +180,7 @@ QMainWindow(parent)
    this->toolbar->addAction(actionInterruptCaml);
    this->toolbar->addAction(actionStopCaml);
    this->toolbar->addAction(actionHighlightEnable);
+   this->toolbar->addAction(actionFollowCursor);
    this->addToolBar(this->toolbar);
    
    /* The menubar */
@@ -178,6 +199,7 @@ QMainWindow(parent)
    this->menuEdit->addAction(actionDelete);
    this->menuEdit->addSeparator();
    this->menuEdit->addAction(actionAutoIndent);
+   this->menuEdit->addAction(actionFollowCursor);
    this->menuEdit->addAction(actionClearOutput);
    this->menuEdit->addAction(actionHighlightEnable);
    this->menuEdit->addAction(actionChangeInputFont);
@@ -196,6 +218,8 @@ QMainWindow(parent)
    this->menuHelp->addAction(actionAboutQt);
    
    /* Connections */
+   connect(inputZone,SIGNAL(returnPressed()),this,SLOT(handleLineBreak()));
+   
    connect(actionSendCaml,SIGNAL(triggered()),this,SLOT(sendCaml()));
    connect(camlProcess,SIGNAL(readyReadStandardOutput()),this,SLOT(readCaml()));
    connect(camlProcess,SIGNAL(readyReadStandardError()),this,SLOT(readCamlErrors()));
@@ -220,10 +244,13 @@ QMainWindow(parent)
    connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
    connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
    connect(actionHighlightEnable,SIGNAL(toggled(bool)),this,SLOT(toggleHighlightOn(bool)));
+   connect(actionAutoIndent,SIGNAL(triggered()),this,SLOT(autoIndentCode()));
+   connect(actionFollowCursor,SIGNAL(triggered(bool)),this,SLOT(toggleAutoIndentOn(bool)));
    
    connect(actionZoomIn,SIGNAL(triggered()),this,SLOT(zoomIn()));
    connect(actionZoomOut,SIGNAL(triggered()),this,SLOT(zoomOut()));
    
+   connect(inputZone, SIGNAL(unindentKeyStrokePressed()), this, SLOT(unindent()));
    
    connect(actionAbout,SIGNAL(triggered()),this,SLOT(about()));
    connect(actionAboutQt,SIGNAL(triggered()),this,SLOT(aboutQt()));
@@ -232,6 +259,7 @@ QMainWindow(parent)
    this->populateRecent();
    
    this->highlightTriggered = false;
+   fillIndentWords(&indentWords);
    
    //Draw trees?
    this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
@@ -775,7 +803,23 @@ void CamlDevWindow::openRecent()
 void CamlDevWindow::toggleHighlightOn(bool doHighlight)
 {
    highlightTriggered = true;
+   settings->setValue("Input/syntaxHighlight",(doHighlight?1:0));
    hilit->setDocument(doHighlight ? inputZone->document() : 0);
+}
+
+void CamlDevWindow::toggleAutoIndentOn(bool doIndent)
+{
+   inputZone->setHandleEnter(doIndent);
+   settings->setValue("Input/indentOnFly",(doIndent?1:0));
+   if(doIndent)
+   {
+      QMessageBox::information(this, "Info", "You have enabled the 'Indent-as-you-type' function.\n\
+Whenever a block should be unindented, LemonCaml will automatically handle the unindent for you, like on the following example:\n\
+while true do\n   print_int 1;\n   done\n\
+will become:\n\
+while true do\n   print_int 1;\ndone\n\
+upon pressing Enter after entering the 'done' keyword.");
+   }
 }
 
 void CamlDevWindow::processCommandList(QStringList *commands)
@@ -881,4 +925,47 @@ void CamlDevWindow::autoLoadML(QString location)
    QString built = "include \"" + location + "\";;\n";
    //appendOutput(built, Qt::blue);
    camlProcess->write(built.toLatin1());
+}
+
+void CamlDevWindow::autoIndentCode()
+{
+   QString code = inputZone->toPlainText();
+   QString result = removeIndent(code);
+   QString indentedCode = indentCode(result, &indentWords, false); //do not calculate any pre-indent: we should be starting from zero!
+   
+   inputZone->selectAll();
+   
+   inputZone->insertPlainText(indentedCode);
+}
+
+void CamlDevWindow::handleLineBreak()
+{
+   //to be ameliorated by analyzing the previous line
+   QString toAppend = "\n";
+   QTextCursor cursor = inputZone->textCursor();
+   QString line = inputZone->textCursor().block().text();//.toAscii();
+   
+   QString beg = line.left(cursor.positionInBlock());
+   QString end = line.mid(cursor.positionInBlock());
+   
+   toAppend = indentCode(beg + "\n" + end, &indentWords, true);
+   
+   cursor.select(QTextCursor::LineUnderCursor);
+   inputZone->setTextCursor(cursor);
+   inputZone->insertPlainText(toAppend);
+   
+}
+
+void CamlDevWindow::unindent()
+{
+   QString line = inputZone->textCursor().block().text();//.toAscii();
+   
+   if(line.at(0) == '\t' || line.at(0) == ' ')
+      line = line.mid(1);
+   
+   QTextCursor cursor = inputZone->textCursor();
+   cursor.select(QTextCursor::LineUnderCursor);
+   inputZone->setTextCursor(cursor);
+   
+   inputZone->insertPlainText(line);
 }

@@ -36,6 +36,7 @@
 #include "inputzone.h"
 #include "highlighter.h"
 #include "camldevsettings.h"
+#include "common.h"
 
 #ifndef WIN32
 #include <unistd.h>
@@ -79,6 +80,7 @@ private:
    QAction *actionShowSettings;
    QAction *actionClearOutput;
    QAction *actionAutoIndent;
+   QAction *actionFollowCursor;
    QAction *actionUndo;
    QAction *actionRedo;
    QAction *actionDelete;
@@ -118,6 +120,7 @@ private:
    QStringList treevalues;
    void autoLoadML(QString location);
    bool drawTrees;
+   QVector<indentKeyword> indentWords;
    
 signals:
    
@@ -145,6 +148,10 @@ public slots:
    void openRecent();
    void updateCamlStatus(QProcess::ProcessState newState);
    void toggleHighlightOn(bool doHighlight);
+   void toggleAutoIndentOn(bool doIndent);
+   void autoIndentCode();
+   void handleLineBreak();
+   void unindent();
    
 };
 
