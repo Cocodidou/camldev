@@ -38,7 +38,7 @@ QString removeComments(QString);
 QString removeCommentsConservative(QString);
 QString removeUnusedLineBreaks(QString, bool isPersonalOutput);
 QStringList parseBlockCommand(QString cmd);
-QString indentCode(QString, QVector<indentKeyword>*);
+QString indentCode(QString, QVector<indentKeyword>*, bool);
 QString removeIndent(QString);
 void fillIndentWords(QVector<indentKeyword>*);
 

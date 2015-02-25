@@ -80,6 +80,7 @@ private:
    QAction *actionShowSettings;
    QAction *actionClearOutput;
    QAction *actionAutoIndent;
+   QAction *actionFollowCursor;
    QAction *actionUndo;
    QAction *actionRedo;
    QAction *actionDelete;
@@ -147,7 +148,10 @@ public slots:
    void openRecent();
    void updateCamlStatus(QProcess::ProcessState newState);
    void toggleHighlightOn(bool doHighlight);
+   void toggleAutoIndentOn(bool doIndent);
    void autoIndentCode();
+   void handleLineBreak();
+   void unindent();
    
 };
 

@@ -172,9 +172,18 @@ int findNextDoubleCommaDot(int pos, QString str)
 }
 
 
-QString indentCode(QString code, QVector<indentKeyword> *iw)
+QString indentCode(QString code, QVector<indentKeyword> *iw, bool calculatePreIndent)
 {
    int indentLevel = 0;
+   
+   if(calculatePreIndent)
+   {
+      while(code.at(0) == '\t') //indent for the first line
+      {
+         indentLevel++;
+         code = code.mid(1);
+      }
+   }
    
    QString cleanCode = removeCommentsConservative(code);
    
@@ -246,7 +255,7 @@ QString indentCode(QString code, QVector<indentKeyword> *iw)
          indentLevel = 0;
       else
          indentLevel += relativeLevel;
-      if(decrCurrentLine)
+      if(decrCurrentLine && ind.at(0) == '\t') //avoid decrementing that are not indented
          ind = ind.mid(1);
       
       result << ind;
