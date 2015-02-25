@@ -21,9 +21,28 @@
 #include <QStringList>
 #include <QDebug>
 
+enum indentRule {
+   Increment,
+   Decrement,
+   Reset,
+   IDLine //increment what follows, decrement the current line if this keyword is the first to appear
+};
+
+struct indentKeyword {
+   QString pattern;
+   indentRule rule;
+};
+
 int* colorFromString(QString str);
 QString removeComments(QString);
+QString removeCommentsConservative(QString);
 QString removeUnusedLineBreaks(QString, bool isPersonalOutput);
 QStringList parseBlockCommand(QString cmd);
+QString indentCode(QString, QVector<indentKeyword>*);
+QString removeIndent(QString);
+void fillIndentWords(QVector<indentKeyword>*);
+
+
+
 
 #endif

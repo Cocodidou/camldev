@@ -220,6 +220,7 @@ QMainWindow(parent)
    connect(actionDelete,SIGNAL(triggered()),this->inputZone,SLOT(paste()));
    connect(actionShowSettings,SIGNAL(triggered()),this,SLOT(showSettings()));
    connect(actionHighlightEnable,SIGNAL(toggled(bool)),this,SLOT(toggleHighlightOn(bool)));
+   connect(actionAutoIndent,SIGNAL(triggered()),this,SLOT(autoIndentCode()));
    
    connect(actionZoomIn,SIGNAL(triggered()),this,SLOT(zoomIn()));
    connect(actionZoomOut,SIGNAL(triggered()),this,SLOT(zoomOut()));
@@ -232,6 +233,7 @@ QMainWindow(parent)
    this->populateRecent();
    
    this->highlightTriggered = false;
+   fillIndentWords(&indentWords);
    
    //Draw trees?
    this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
@@ -881,4 +883,15 @@ void CamlDevWindow::autoLoadML(QString location)
    QString built = "include \"" + location + "\";;\n";
    //appendOutput(built, Qt::blue);
    camlProcess->write(built.toLatin1());
+}
+
+void CamlDevWindow::autoIndentCode()
+{
+   QString code = inputZone->toPlainText();
+   QString result = removeIndent(code);
+   QString indentedCode = indentCode(result, &indentWords);
+   
+   inputZone->selectAll();
+   
+   inputZone->insertPlainText(indentedCode);
 }
