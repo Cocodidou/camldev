@@ -65,6 +65,7 @@ cp ./camlcomp ./lib/
 cp ./camllex ./lib/
 cp ./camllibr ./lib/
 cp ./camllink ./lib/
+cp ./compiler/* ./lib/
 cp ./runtime/* ./lib/
 cp ./toplevel/* ./lib/
 cd ..
@@ -139,6 +140,21 @@ else
    SUMMARY=$SUMMARY"Building the str package failed. "
 fi
 cd ..
+
+# Build the debugger
+cd debugger
+sed -i "s/CAMLLEX=camllex/CAMLLEX=camlrun $(echo $LIBDIR | sed "s/\//\\\\\//g")\/camllex/g" ./Makefile
+make
+if [ $? == 0 ]; then
+   cp ./*.zi ../../src/lib/
+   cp ./*.zo ../../src/lib/
+   cp ./*.a ../../src/lib/
+   echo "Built the debugger"
+else
+   SUMMARY=$SUMMARY"Building the debugger failed. "
+fi
+cd ..
+
 
 cd ..
 
