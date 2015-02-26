@@ -31,11 +31,7 @@
 #ifndef FINDREPLACE_H
 #define FINDREPLACE_H
 
-enum stat {
-   OK,
-   NotFound,
-   ReachEndDoc
-};
+
 
 class findReplace : public QGroupBox
 {
@@ -44,6 +40,11 @@ public:
    findReplace(QTextEdit*, highlighter*);
    void takeFocus();
    
+   enum searchstat {
+      OK,
+      NotFound,
+      ReachEndDoc
+   };
    
 private:
    QVBoxLayout *layout;
@@ -67,7 +68,7 @@ private:
    bool searchRegExp;
    bool isHighlighting;
 
-   void status(stat us);
+   void status(searchstat us);
    void highlightAllResults();
    
 signals:

@@ -22,17 +22,17 @@
 
 
 findReplace::findReplace(QTextEdit *d, highlighter *h) : 
-    QGroupBox ("Find/replace")
+    QGroupBox (tr("Find/replace"))
 {
    this->doc = d;
    this->hlt = h;
    this->findText = new QLineEdit(this);
    this->replaceText = new QLineEdit(this);
-   QLabel *findLabel = new QLabel("Find:", this);
-   QLabel *replaceLabel = new QLabel("Replace:", this);
-   this->isRegExp = new QCheckBox("Use regular expressions", this);
-   this->caseSensitive = new QCheckBox("Case-sensitive", this);
-   this->showHideReplace = new QPushButton("More...");
+   QLabel *findLabel = new QLabel(tr("Find:"), this);
+   QLabel *replaceLabel = new QLabel(tr("Replace:"), this);
+   this->isRegExp = new QCheckBox(tr("Use regular expressions"), this);
+   this->caseSensitive = new QCheckBox(tr("Case-sensitive"), this);
+   this->showHideReplace = new QPushButton(tr("More..."));
    this->showHideReplace->setIcon(QIcon(":/up.png"));
    this->showHideReplace->setCheckable(true);
    this->searchCaseSensitive = false;
@@ -40,17 +40,17 @@ findReplace::findReplace(QTextEdit *d, highlighter *h) :
    
    this->isHighlighting = true; //by default highlight all the found results
    
-   this->find = new QPushButton("Find next");
+   this->find = new QPushButton(tr("Find next"));
    this->find->setIcon(QIcon(":/next.png"));
-   this->hilitAll = new QPushButton("Highlight All");
+   this->hilitAll = new QPushButton(tr("Highlight All"));
    this->hilitAll->setIcon(QIcon(":/uline_search.png"));
    this->hilitAll->setCheckable(true);
    this->hilitAll->setChecked(isHighlighting);
-   this->replace = new QPushButton("Replace next");
-   this->replaceAll = new QPushButton("Replace All");
+   this->replace = new QPushButton(tr("Replace next"));
+   this->replaceAll = new QPushButton(tr("Replace All"));
    this->statusLabel = new QLabel("", this);
    
-   QPushButton *closeButton = new QPushButton("Close", this);
+   QPushButton *closeButton = new QPushButton(tr("Close"), this);
    closeButton->setIcon(QIcon(":/stopcaml.png"));
    connect(closeButton,SIGNAL(clicked()),this,SLOT(hide()));
    
@@ -72,6 +72,7 @@ findReplace::findReplace(QTextEdit *d, highlighter *h) :
    bottomLayout->addWidget(replaceText);
    bottomLayout->addWidget(replace);
    bottomLayout->addWidget(replaceAll);
+   bottomLayout->setContentsMargins(0,0,0,0);
    
    optionsLayout->addWidget(isRegExp);
    optionsLayout->addWidget(caseSensitive);
@@ -107,12 +108,12 @@ void findReplace::triggerReplace(bool show)
    wrapperReplaceWidget->setVisible(show);
    if(show)
    {
-      showHideReplace->setText("Less...");
+      showHideReplace->setText(tr("Less..."));
       showHideReplace->setIcon(QIcon(":/down.png"));
    }
    else
    {
-      showHideReplace->setText("More...");
+      showHideReplace->setText(tr("More..."));
       showHideReplace->setIcon(QIcon(":/up.png"));
    }
 }
@@ -195,7 +196,7 @@ void findReplace::findNextOccurence()
       nextMatch = contents.indexOf(txt, pos + txt.length(), sensitivity);
       len = txt.length();
    } else {
-      nextMatch = re.indexIn(contents, pos+1);
+      nextMatch = re.indexIn(contents, pos);
       len = re.matchedLength();
    }
    
@@ -364,7 +365,7 @@ void findReplace::hide()
    emit hideRequest(false);
 }
 
-void findReplace::status(stat us)
+void findReplace::status(searchstat us)
 {
    switch(us)
    {
@@ -372,10 +373,10 @@ void findReplace::status(stat us)
          statusLabel->setText("");
          break;
       case NotFound:
-         statusLabel->setText("Not found");
+         statusLabel->setText(tr("Not found"));
          break;
       case ReachEndDoc:
-         statusLabel->setText("Reached end of document, searching from the beginning");
+         statusLabel->setText(tr("Reached end of document, searching from the beginning"));
          break;
       default:
          break;

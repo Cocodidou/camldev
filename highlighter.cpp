@@ -36,7 +36,7 @@ void highlighter::updateColorSettings()
   QStringList defaultColors;
   defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156" << "255,255,0";
   QStringList helpers;
-  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions" << "Search results";
+  helpers << tr("Variable declarations") << tr("Loops") << tr("Comments") << tr("Preprocessor commands") << tr("Booleans") << tr("Strings") << tr("Characters") << tr("Built in types") << tr("Built in functions") << tr("Search results");
   bool bold[] = { false, true, false, false, true, false, false, false, false, true };
   bool italics[] = { false, false, true, false, false, false, false, false, false, false };
   bool isBackground[] = { false, false, false, false, false, false, false, false, false, true };
@@ -81,7 +81,7 @@ void highlighter::highlightBlock(const QString &text)
          int length = expression.matchedLength();
          QTextCharFormat fmt = m_formats[rule.format];
          setFormat(index, length, fmt);
-         index = expression.indexIn(text, index + length);
+         index = expression.indexIn(text, index + length + ((length == 0)?1:0)); //during testing, a zero-length match happened (with (a|b)*). If mu is in the recognized language, then we should skip it.
       }
    }
    

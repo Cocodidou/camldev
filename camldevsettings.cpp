@@ -39,39 +39,39 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   QVBoxLayout *generalTabLayout = new QVBoxLayout();
   
   this->camlPathField = new QLineEdit(camlPath,this);
-  this->camlPathField->setWhatsThis("This is the path to the Caml toplevel executable.<br /> \
+  this->camlPathField->setWhatsThis(tr("This is the path to the Caml toplevel executable.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
-  the place it got compiled in...");
+  the place it got compiled in..."));
   this->camlArgsField = new QLineEdit(camlArgs,this);
-  this->camlArgsField->setWhatsThis("This field contains the arguments passed to the Caml toplevel.<br /> \
+  this->camlArgsField->setWhatsThis(tr("This field contains the arguments passed to the Caml toplevel.<br /> \
   Usually, this is \"-stdlib\" followed by the path to the Caml library, a set of compiled .zi and .zo files.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
-  the place it got compiled in...");
+  the place it got compiled in..."));
   this->keywordsPathField = new QLineEdit(kwfilePath, this);
-  this->keywordsPathField->setWhatsThis("This is the path to the \"keywords\" file, which is typically located in the same directory as LemonCaml.<br /> \
+  this->keywordsPathField->setWhatsThis(tr("This is the path to the \"keywords\" file, which is typically located in the same directory as LemonCaml.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
-  the place it got compiled in...");
+  the place it got compiled in..."));
   this->numberField = new QSpinBox(this);
-  this->numberField->setWhatsThis("This counts how many recent files are to be kept in memory in the \"File->Recent files\" menu.");
+  this->numberField->setWhatsThis(tr("This counts how many recent files are to be kept in memory in the \"File->Recent files\" menu."));
   numberField->setRange(0, 20);
   numberField->setSingleStep(1);
   numberField->setValue(settings->value("Recent/number",5).toInt());
   this->treeModelsPathField = new QLineEdit(treeModelsPath, this);
-  this->treeModelsPathField->setWhatsThis("This is the path to the tree models dir, which is typically located in the \"gentree\" subdirectory of LemonCaml\'s installation.<br /> \
+  this->treeModelsPathField->setWhatsThis(tr("This is the path to the tree models dir, which is typically located in the \"gentree\" subdirectory of LemonCaml\'s installation.<br /> \
   It should be an absolute path if LemonCaml gets opened from another directory than \
-  the place it got compiled in...");
-  this->acceptTrees = new QCheckBox("Draw graphical trees - beta, read documentation!", this);
+  the place it got compiled in..."));
+  this->acceptTrees = new QCheckBox(tr("Draw graphical trees - beta, read documentation!"), this);
   this->acceptTrees->setTristate(false);
   this->acceptTrees->setCheckState((drawTrees)?Qt::Checked:Qt::Unchecked);
   
   
-  QLabel *camlPathL = new QLabel("CaML top-level executable:",this);
-  QLabel *camlArgsL = new QLabel("CaML arguments:",this);
-  QLabel *numberL = new QLabel("Number of recent files to be kept:", this);
-  QLabel *keywordsPathL = new QLabel("Keywords file (for syntax highlighting):", this);
-  QLabel *treeModelsPathL = new QLabel("Tree models path:", this);
+  QLabel *camlPathL = new QLabel(tr("CaML top-level executable:"),this);
+  QLabel *camlArgsL = new QLabel(tr("CaML arguments:"),this);
+  QLabel *numberL = new QLabel(tr("Number of recent files to be kept:"), this);
+  QLabel *keywordsPathL = new QLabel(tr("Keywords file (for syntax highlighting):"), this);
+  QLabel *treeModelsPathL = new QLabel(tr("Tree models path:"), this);
   
-  QPushButton *autoConfButton = new QPushButton("Auto-configure", this);
+  QPushButton *autoConfButton = new QPushButton(tr("Auto-configure"), this);
   connect(autoConfButton, SIGNAL(clicked()), this, SLOT(autoConfDirs()));
   
   generalTabLayout->addWidget(camlPathL);
@@ -88,7 +88,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   generalTabLayout->addWidget(autoConfButton);
   
   generalTab->setLayout(generalTabLayout);
-  tabWidget->addTab(generalTab, "General");
+  tabWidget->addTab(generalTab, tr("General"));
   
   /* COLORS TAB */ //TODO: signals/slots to be able to set them....
   this->colorsTab = new QWidget;
@@ -98,7 +98,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   QStringList defaultColors;
   defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156" << "255,255,0";
   QStringList helpers;
-  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions" << "Search results";
+  helpers << tr("Variable declarations") << tr("Loops") << tr("Comments") << tr("Preprocessor commands") << tr("Booleans") << tr("Strings") << tr("Characters") << tr("Built in types") << tr("Built in functions") << tr("Search results");
   
   for(int i = 0; i < colorsToSet.count(); i++)
   {
@@ -109,7 +109,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
         //add a BUTTON
         QHBoxLayout *colLayout = new QHBoxLayout;
         colLayout->addWidget(new QLabel(helpers[i], this));
-        colorButton *btn = new colorButton("Set...", this);
+        colorButton *btn = new colorButton(tr("Set..."), this);
 	btn->setAssociatedColor(colorsToSet[i], colors[0], colors[1], colors[2], helpers[i]);
 	connect(btn, SIGNAL(clicked()), this, SLOT(openColorPicker()));
         colLayout->addWidget(btn);
@@ -122,7 +122,7 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   this->buttonToUpdate = NULL;
   
   colorsTab->setLayout(colorsTabLayout);
-  tabWidget->addTab(colorsTab, "Colors");
+  tabWidget->addTab(colorsTab, tr("Colors"));
   
   mainLayout->addWidget(tabWidget);
 

@@ -40,4 +40,7 @@ lemoncaml.path = /usr/bin/
 
 INSTALLS += lemoncaml
 
+TRANSLATIONS += lemoncaml_fr.ts \
+   lemoncaml_es.ts
+
 RC_FILE = progicon.rc
