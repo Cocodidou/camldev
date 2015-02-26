@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     inputzone.cpp \
     highlighter.cpp \
     treeparser.cpp \
-    common.cpp
+    common.cpp \
+    findreplace.cpp
 
 HEADERS += \
     camldevwindow.h \
@@ -28,7 +29,8 @@ HEADERS += \
     highlighter.h \
     treeparser.h \
     common.h \
-    colorButton.h
+    colorButton.h \
+    findreplace.h
 
 RESOURCES += \
     icons.qrc

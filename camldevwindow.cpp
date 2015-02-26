@@ -33,7 +33,9 @@ QMainWindow(parent)
    this->settings = new QSettings("Cocodidou", "LemonCaml");
    
    /* The main window elements : two text-areas and a splitter */
+   this->centralBox = new QVBoxLayout();
    this->split = new QSplitter(Qt::Horizontal,this);
+   
    this->inputZone = new InputZone();
    this->inputZone->setTabStopWidth(20);
    this->inputZone->setAcceptRichText(false);
@@ -92,12 +94,27 @@ QMainWindow(parent)
    outputFont.fromString(oFont);
    this->outputZone->setFont(outputFont);
    
-   this->setCentralWidget(split);
+
    
+   /* Find/Replace */
    
+   this->find = new findReplace(inputZone, hilit);
    split->addWidget(this->inputZone);
    split->addWidget(this->outputZone);
    split->showMaximized();
+   
+   centralBox->addWidget(split);
+   centralBox->addWidget(find);
+   if(!centralBox->setStretchFactor(split, 100))
+      qDebug() << "There will be a problem with Find/replace!";
+   
+   /* a wrapper widget */
+   QWidget *window = new QWidget();
+   window->setLayout(centralBox);
+   
+   this->setCentralWidget(window);
+   
+   find->setVisible(false);
    
    if(settings->value("Input/indentOnFly",0).toInt() == 1)
       inputZone->setHandleEnter(true);
@@ -164,6 +181,11 @@ QMainWindow(parent)
    this->actionZoomIn->setShortcut(QKeySequence(QKeySequence::ZoomIn));
    this->actionZoomOut = new QAction("Zoom out", this);
    this->actionZoomOut->setShortcut(QKeySequence(QKeySequence::ZoomOut));
+   this->actionFind = new QAction("Find/Replace...", this);
+   this->actionFind->setShortcut(QKeySequence(QKeySequence::Find));
+   this->actionFind->setIcon(QIcon(":/find.png"));
+   this->actionFind->setCheckable(true);
+   this->actionFind->setChecked(false);
    
    /* The toolbar */
    this->toolbar = new QToolBar("Tools",this);
@@ -200,6 +222,8 @@ QMainWindow(parent)
    this->menuEdit->addSeparator();
    this->menuEdit->addAction(actionAutoIndent);
    this->menuEdit->addAction(actionFollowCursor);
+   this->menuEdit->addSeparator();
+   this->menuEdit->addAction(actionFind);
    this->menuEdit->addAction(actionClearOutput);
    this->menuEdit->addAction(actionHighlightEnable);
    this->menuEdit->addAction(actionChangeInputFont);
@@ -216,6 +240,8 @@ QMainWindow(parent)
    this->menuHelp = this->menuBar()->addMenu("Help");
    this->menuHelp->addAction(actionAbout);
    this->menuHelp->addAction(actionAboutQt);
+   
+
    
    /* Connections */
    connect(inputZone,SIGNAL(returnPressed()),this,SLOT(handleLineBreak()));
@@ -249,6 +275,8 @@ QMainWindow(parent)
    
    connect(actionZoomIn,SIGNAL(triggered()),this,SLOT(zoomIn()));
    connect(actionZoomOut,SIGNAL(triggered()),this,SLOT(zoomOut()));
+   connect(actionFind,SIGNAL(triggered(bool)),this,SLOT(triggerFindReplace(bool)));
+   connect(find,SIGNAL(hideRequest(bool)),this,SLOT(triggerFindReplace(bool)));
    
    connect(inputZone, SIGNAL(unindentKeyStrokePressed()), this, SLOT(unindent()));
    
@@ -968,4 +996,16 @@ void CamlDevWindow::unindent()
    inputZone->setTextCursor(cursor);
    
    inputZone->insertPlainText(line);
+}
+
+void CamlDevWindow::triggerFindReplace(bool show)
+{
+   this->find->setVisible(show);
+   if(show)
+      find->takeFocus();
+   else
+      inputZone->setFocus(Qt::PopupFocusReason);
+   
+   if(this->actionFind->isChecked() != show)
+      this->actionFind->setChecked(show);
 }

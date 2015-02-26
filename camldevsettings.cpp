@@ -94,11 +94,11 @@ CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
   this->colorsTab = new QWidget;
   QVBoxLayout *colorsTabLayout = new QVBoxLayout();
   QStringList colorsToSet;
-  colorsToSet << "variableDec" << "loop" << "comment" << "preproc" << "boolean" << "string" << "char" << "builtInType" << "builtInFunction";
+  colorsToSet << "variableDec" << "loop" << "comment" << "preproc" << "boolean" << "string" << "char" << "builtInType" << "builtInFunction" << "searchResult";
   QStringList defaultColors;
-  defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156";
+  defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156" << "255,255,0";
   QStringList helpers;
-  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions";
+  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions" << "Search results";
   
   for(int i = 0; i < colorsToSet.count(); i++)
   {

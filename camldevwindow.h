@@ -32,11 +32,13 @@
 #include <QSplitter>
 #include <QPrinter>
 #include <QKeySequence>
+#include <QVBoxLayout>
 #include "treeparser.h"
 #include "inputzone.h"
 #include "highlighter.h"
 #include "camldevsettings.h"
 #include "common.h"
+#include "findreplace.h"
 
 #ifndef WIN32
 #include <unistd.h>
@@ -91,6 +93,7 @@ private:
    QAction *actionHighlightEnable;
    QAction *actionZoomIn;
    QAction *actionZoomOut;
+   QAction *actionFind;
    QAction **recent = NULL;
    QString* recentFiles;
    int numRecentFiles;
@@ -121,6 +124,8 @@ private:
    void autoLoadML(QString location);
    bool drawTrees;
    QVector<indentKeyword> indentWords;
+   findReplace *find;
+   QVBoxLayout *centralBox;
    
 signals:
    
@@ -152,6 +157,7 @@ public slots:
    void autoIndentCode();
    void handleLineBreak();
    void unindent();
+   void triggerFindReplace(bool show);
    
 };
 
