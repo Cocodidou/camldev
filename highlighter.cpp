@@ -25,20 +25,21 @@ highlighter::highlighter(QTextDocument *document, QStringList *kw, QSettings *se
   createKeywordArray(kw);
    
   this->escapeSequence = false;
+  this->hasSearchRule = false;
 }
 
 void highlighter::updateColorSettings()
 {
   //called after settings are changed or at build-up
   QStringList colorsToSet;
-  colorsToSet << "variableDec" << "loop" << "comment" << "preproc" << "boolean" << "string" << "char" << "builtInType" << "builtInFunction";
+  colorsToSet << "variableDec" << "loop" << "comment" << "preproc" << "boolean" << "string" << "char" << "builtInType" << "builtInFunction" << "searchResult";
   QStringList defaultColors;
-  defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156";
+  defaultColors << "186,19,155" << "0,163,49" << "181,181,181" << "0,224,49" << "0,75,255" << "255,0,0" << "255,0,0" << "0,21,156" << "0,21,156" << "255,255,0";
   QStringList helpers;
-  helpers << "Variable declarations" << "Loops" << "Comments" << "Preprocessor commands" << "Booleans" << "Strings" << "Characters" << "Built in types" << "Built in functions";
-  bool bold[] = { false, true, false, false, true, false, false, false, false };
-  bool italics[] = { false, false, true, false, false, false, false, false, false };
-  
+  helpers << tr("Variable declarations") << tr("Loops") << tr("Comments") << tr("Preprocessor commands") << tr("Booleans") << tr("Strings") << tr("Characters") << tr("Built in types") << tr("Built in functions") << tr("Search results");
+  bool bold[] = { false, true, false, false, true, false, false, false, false, true };
+  bool italics[] = { false, false, true, false, false, false, false, false, false, false };
+  bool isBackground[] = { false, false, false, false, false, false, false, false, false, true };
   
   for(int i = 0; i < colorsToSet.count(); i++)
   {
@@ -47,13 +48,17 @@ void highlighter::updateColorSettings()
      if(colors != NULL)
      {
         QTextCharFormat charFormat;
-        charFormat.setForeground(QColor(colors[0], colors[1], colors[2]));
+        if(!isBackground[i])
+           charFormat.setForeground(QColor(colors[0], colors[1], colors[2]));
+        else
+           charFormat.setBackground(QColor(colors[0], colors[1], colors[2]));
+        
         if(bold[i]) charFormat.setFontWeight(QFont::Bold);
         if(italics[i]) charFormat.setFontItalic(true);
         setFormatFor((Construct)i, charFormat);
      }
      delete[] colors;
-  } 
+  }
 }
 
 void highlighter::setFormatFor(Construct construct, const QTextCharFormat &format)
@@ -76,7 +81,7 @@ void highlighter::highlightBlock(const QString &text)
          int length = expression.matchedLength();
          QTextCharFormat fmt = m_formats[rule.format];
          setFormat(index, length, fmt);
-         index = expression.indexIn(text, index + length);
+         index = expression.indexIn(text, index + length + ((length == 0)?1:0)); //during testing, a zero-length match happened (with (a|b)*). If mu is in the recognized language, then we should skip it.
       }
    }
    
@@ -245,4 +250,25 @@ void highlighter::createKeywordArray(QStringList *lst)
 
    }
    
+}
+
+void highlighter::addSearchRule(QRegExp regexp)
+{
+   if(hasSearchRule)
+      undoSearchRule();
+   HighlightingRule rule;
+   rule.pattern = regexp;
+   rule.format = SearchResult;
+   highlightingRules.append(rule);
+   hasSearchRule = true;
+   rehighlight();
+}
+
+void highlighter::undoSearchRule()
+{
+   if(hasSearchRule) {
+      highlightingRules.erase(highlightingRules.end() - 1);
+      rehighlight();
+   }
+   hasSearchRule = false;
 }

@@ -19,6 +19,14 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QTranslator translator;
+
+    QString locale = QLocale::system().name().section('_', 0, 0);
+    
+    translator.load("lemoncaml_" + locale);
+
+    a.installTranslator(&translator);
+    
     CamlDevWindow w(a.applicationDirPath());
     if(argc > 1) { //open only the first file...
        QStringList arguments = a.arguments();

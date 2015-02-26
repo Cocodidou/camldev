@@ -18,6 +18,9 @@
 #include <QSettings>
 #include "common.h"
 
+#ifndef HIGHLIGHTER_H
+#define HIGHLIGHTER_H
+
 class highlighter : public QSyntaxHighlighter
 {
   Q_OBJECT
@@ -33,7 +36,8 @@ public:
     Char,
     BuiltInType,
     BuiltInFunction,
-    LastConstruct = BuiltInFunction
+    SearchResult,
+    LastConstruct = SearchResult
   };
   
   highlighter(QTextDocument *document, QStringList *kw, QSettings *settings);
@@ -52,6 +56,8 @@ public:
     
   
   void updateColorSettings();
+  void addSearchRule(QRegExp regexp);
+  void undoSearchRule();
   
 protected:
   enum State {
@@ -66,11 +72,14 @@ protected:
 
   
 private:
-    QVector<HighlightingRule> highlightingRules;
-  bool escapeSequence;
-  QTextCharFormat m_formats[LastConstruct + 1];
-  bool insideWord(QString str, int start, int len);
-  void createKeywordArray(QStringList *lst);
-  int numKW;
-  QSettings *settings;
+   QVector<HighlightingRule> highlightingRules;
+   bool escapeSequence;
+   QTextCharFormat m_formats[LastConstruct + 1];
+   bool insideWord(QString str, int start, int len);
+   void createKeywordArray(QStringList *lst);
+   int numKW;
+   QSettings *settings;
+   bool hasSearchRule;
 };
+
+#endif

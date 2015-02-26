@@ -33,7 +33,9 @@ QMainWindow(parent)
    this->settings = new QSettings("Cocodidou", "LemonCaml");
    
    /* The main window elements : two text-areas and a splitter */
+   this->centralBox = new QVBoxLayout();
    this->split = new QSplitter(Qt::Horizontal,this);
+   
    this->inputZone = new InputZone();
    this->inputZone->setTabStopWidth(20);
    this->inputZone->setAcceptRichText(false);
@@ -75,7 +77,7 @@ QMainWindow(parent)
    }
    else
    {
-      QMessageBox::warning(this, "Warning", "Unable to open the keywords file. There will likely be no syntax highlighting.");
+      QMessageBox::warning(this, tr("Warning"), tr("Unable to open the keywords file. There will likely be no syntax highlighting."));
    }
    this->hilit = new highlighter(inputZone->document(), &kwds, this->settings);
    bool isHighlighting = (settings->value("Input/syntaxHighlight",1).toInt() == 1);
@@ -92,12 +94,31 @@ QMainWindow(parent)
    outputFont.fromString(oFont);
    this->outputZone->setFont(outputFont);
    
-   this->setCentralWidget(split);
+
    
+   /* Find/Replace */
    
+   this->find = new findReplace(inputZone, hilit);
    split->addWidget(this->inputZone);
    split->addWidget(this->outputZone);
    split->showMaximized();
+   
+   centralBox->addWidget(split);
+   centralBox->addWidget(find);
+   if(!centralBox->setStretchFactor(split, 100))
+      qDebug() << "There will be a problem with Find/replace!";
+
+   centralBox->setContentsMargins(0,0,0,0);
+   
+   /* a wrapper widget */
+   QWidget *window = new QWidget();
+   window->setLayout(centralBox);
+   window->setContentsMargins(0,0,0,0);
+
+   
+   this->setCentralWidget(window);
+   
+   find->setVisible(false);
    
    if(settings->value("Input/indentOnFly",0).toInt() == 1)
       inputZone->setHandleEnter(true);
@@ -106,67 +127,72 @@ QMainWindow(parent)
    this->printer = new QPrinter(QPrinter::HighResolution);
    
    /* The actions */
-   this->actionNew = new QAction("New",this);
+   this->actionNew = new QAction(tr("New"),this);
    this->actionNew->setIcon(QIcon(":/new.png"));
    this->actionNew->setShortcut(QKeySequence(QKeySequence::New));
-   this->actionOpen = new QAction("Open",this);
+   this->actionOpen = new QAction(tr("Open"),this);
    this->actionOpen->setIcon(QIcon(":/open.png"));
    this->actionOpen->setShortcut(QKeySequence(QKeySequence::Open));
-   this->actionSaveAs = new QAction("Save As",this);
+   this->actionSaveAs = new QAction(tr("Save As"),this);
    this->actionSaveAs->setIcon(QIcon(":/saveas.png"));
    this->actionSaveAs->setShortcut(QKeySequence(QKeySequence::SaveAs));
-   this->actionSave = new QAction("Save",this);
+   this->actionSave = new QAction(tr("Save"),this);
    this->actionSave->setIcon(QIcon(":/save.png"));
    this->actionSave->setShortcut(QKeySequence(QKeySequence::Save));
-   this->actionAutoIndent = new QAction("Indent code",this);
+   this->actionAutoIndent = new QAction(tr("Indent code"),this);
    this->actionAutoIndent->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
-   this->actionFollowCursor = new QAction("Indent code while typing",this);
+   this->actionFollowCursor = new QAction(tr("Indent code while typing"),this);
    this->actionFollowCursor->setCheckable(true);
    this->actionFollowCursor->setChecked(inputZone->getHandleEnter());
    this->actionFollowCursor->setIcon(QIcon(":/autoindent.png"));
-   this->actionPrint = new QAction("Print",this);
+   this->actionPrint = new QAction(tr("Print"),this);
    this->actionPrint->setIcon(QIcon(":/print.png"));
    this->actionPrint->setShortcut(QKeySequence(QKeySequence::Print));
-   this->actionClearOutput = new QAction("Clear output",this);
-   this->actionQuit = new QAction("Quit",this);
+   this->actionClearOutput = new QAction(tr("Clear output"),this);
+   this->actionQuit = new QAction(tr("Quit"),this);
    this->actionQuit->setIcon(QIcon(":/exit.png"));
    this->actionQuit->setShortcut(QKeySequence(QKeySequence::Quit));
    
-   this->actionUndo = new QAction("Undo",this);
+   this->actionUndo = new QAction(tr("Undo"),this);
    this->actionUndo->setIcon(QIcon(":/undo.png"));
    this->actionUndo->setShortcut(QKeySequence(QKeySequence::Undo));
-   this->actionRedo = new QAction("Redo",this);
+   this->actionRedo = new QAction(tr("Redo"),this);
    this->actionRedo->setIcon(QIcon(":/redo.png"));
    this->actionRedo->setShortcut(QKeySequence(QKeySequence::Redo));
-   this->actionDelete = new QAction("Delete",this);
-   this->actionChangeInputFont = new QAction("Change Input Font",this);
-   this->actionChangeOutputFont = new QAction("Change Output Font",this);
+   this->actionDelete = new QAction(tr("Delete"),this);
+   this->actionChangeInputFont = new QAction(tr("Change Input Font"),this);
+   this->actionChangeOutputFont = new QAction(tr("Change Output Font"),this);
    
-   this->actionSendCaml = new QAction("Send Code to Caml",this);
+   this->actionSendCaml = new QAction(tr("Send Code to Caml"),this);
    this->actionSendCaml->setIcon(QIcon(":/sendcaml.png"));
    this->actionSendCaml->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return));
-   this->actionInterruptCaml = new QAction("Interrupt Caml",this);
+   this->actionInterruptCaml = new QAction(tr("Interrupt Caml"),this);
    this->actionInterruptCaml->setIcon(QIcon(":/interrupt.png"));
-   this->actionStopCaml = new QAction("Stop Caml",this);
+   this->actionStopCaml = new QAction(tr("Stop Caml"),this);
    this->actionStopCaml->setIcon(QIcon(":/stopcaml.png"));
-   this->actionShowSettings = new QAction("Settings",this);
+   this->actionShowSettings = new QAction(tr("Settings"),this);
    this->actionShowSettings->setShortcut(QKeySequence(QKeySequence::Preferences));
    
-   this->actionAbout = new QAction("About LemonCaml...",this);
-   this->actionAboutQt = new QAction("About Qt...",this);
+   this->actionAbout = new QAction(tr("About LemonCaml..."),this);
+   this->actionAboutQt = new QAction(tr("About Qt..."),this);
    
-   this->actionHighlightEnable = new QAction("Enable syntax highlighting", this);
+   this->actionHighlightEnable = new QAction(tr("Enable syntax highlighting"), this);
    this->actionHighlightEnable->setIcon(QIcon(":/highlight.png"));
    this->actionHighlightEnable->setCheckable(true);
    this->actionHighlightEnable->setChecked(isHighlighting);
    
-   this->actionZoomIn = new QAction("Zoom in", this);
+   this->actionZoomIn = new QAction(tr("Zoom in"), this);
    this->actionZoomIn->setShortcut(QKeySequence(QKeySequence::ZoomIn));
-   this->actionZoomOut = new QAction("Zoom out", this);
+   this->actionZoomOut = new QAction(tr("Zoom out"), this);
    this->actionZoomOut->setShortcut(QKeySequence(QKeySequence::ZoomOut));
+   this->actionFind = new QAction(tr("Find/Replace..."), this);
+   this->actionFind->setShortcut(QKeySequence(QKeySequence::Find));
+   this->actionFind->setIcon(QIcon(":/find.png"));
+   this->actionFind->setCheckable(true);
+   this->actionFind->setChecked(false);
    
    /* The toolbar */
-   this->toolbar = new QToolBar("Tools",this);
+   this->toolbar = new QToolBar(tr("Tools"),this);
    this->toolbar->addAction(actionNew);
    this->toolbar->addAction(actionOpen);
    this->toolbar->addAction(actionSave);
@@ -184,22 +210,24 @@ QMainWindow(parent)
    this->addToolBar(this->toolbar);
    
    /* The menubar */
-   this->menuFile = this->menuBar()->addMenu("File");
+   this->menuFile = this->menuBar()->addMenu(tr("File"));
    this->menuFile->addAction(actionNew);
    this->menuFile->addAction(actionOpen);
-   this->menuRecent = this->menuFile->addMenu("Recent files");
+   this->menuRecent = this->menuFile->addMenu(tr("Recent files"));
    this->menuFile->addAction(actionSave);
    this->menuFile->addAction(actionSaveAs);
    this->menuFile->addAction(actionPrint);
    this->menuFile->addAction(actionQuit);
    
-   this->menuEdit = this->menuBar()->addMenu("Edit");
+   this->menuEdit = this->menuBar()->addMenu(tr("Edit"));
    this->menuEdit->addAction(actionUndo);
    this->menuEdit->addAction(actionRedo);
    this->menuEdit->addAction(actionDelete);
    this->menuEdit->addSeparator();
    this->menuEdit->addAction(actionAutoIndent);
    this->menuEdit->addAction(actionFollowCursor);
+   this->menuEdit->addSeparator();
+   this->menuEdit->addAction(actionFind);
    this->menuEdit->addAction(actionClearOutput);
    this->menuEdit->addAction(actionHighlightEnable);
    this->menuEdit->addAction(actionChangeInputFont);
@@ -207,15 +235,17 @@ QMainWindow(parent)
    this->menuEdit->addAction(actionZoomIn);
    this->menuEdit->addAction(actionZoomOut);
    
-   this->menuCaml = this->menuBar()->addMenu("Caml");
+   this->menuCaml = this->menuBar()->addMenu(tr("Caml"));
    this->menuCaml->addAction(actionSendCaml);
    this->menuCaml->addAction(actionInterruptCaml);
    this->menuCaml->addAction(actionStopCaml);
    this->menuCaml->addAction(actionShowSettings);
    
-   this->menuHelp = this->menuBar()->addMenu("Help");
+   this->menuHelp = this->menuBar()->addMenu(tr("Help"));
    this->menuHelp->addAction(actionAbout);
    this->menuHelp->addAction(actionAboutQt);
+   
+
    
    /* Connections */
    connect(inputZone,SIGNAL(returnPressed()),this,SLOT(handleLineBreak()));
@@ -249,6 +279,8 @@ QMainWindow(parent)
    
    connect(actionZoomIn,SIGNAL(triggered()),this,SLOT(zoomIn()));
    connect(actionZoomOut,SIGNAL(triggered()),this,SLOT(zoomOut()));
+   connect(actionFind,SIGNAL(triggered(bool)),this,SLOT(triggerFindReplace(bool)));
+   connect(find,SIGNAL(hideRequest(bool)),this,SLOT(triggerFindReplace(bool)));
    
    connect(inputZone, SIGNAL(unindentKeyStrokePressed()), this, SLOT(unindent()));
    
@@ -301,7 +333,7 @@ void CamlDevWindow::updateCamlStatus(QProcess::ProcessState newState)
          {
             //this->outputZone->setTextColor(this->palette().color(QPalette::WindowText));
             //this->outputZone->append("Caml Stopped\n-----------\n\n");
-            appendOutput("\nCaml Stopped\n-----------\n\n",this->palette().color(QPalette::WindowText));
+            appendOutput(tr("\nCaml Stopped\n-----------\n\n"),this->palette().color(QPalette::WindowText));
             camlStarted = false;
          }
          break;
@@ -326,7 +358,7 @@ void CamlDevWindow::sendCaml()
       camlProcess->waitForStarted();
       if(!camlStarted)
       {
-         QMessageBox::warning(this,"Warning","Unable to start Caml toplevel!! Please go to Caml -> Settings to set its path.");
+         QMessageBox::warning(this,tr("Warning"),tr("Unable to start Caml toplevel!! Please go to Caml -> Settings to set its path."));
       }
       
    }
@@ -400,7 +432,7 @@ void CamlDevWindow::readCaml()
          int p = stdOut.indexOf("--EndLemonCamlCommand--"); //23
          if(p == -1)
          {
-            appendOutput("---LemonCaml error--- Unterminated command: not interpreted\n", Qt::red);
+            appendOutput(tr("---LemonCaml error--- Unterminated command: not interpreted\n"), Qt::red);
             stdOut = stdOut.mid(j + 20);
          }
          else
@@ -419,7 +451,7 @@ void CamlDevWindow::readCaml()
          int p = stdOut.indexOf("--EndLemonTree--"); //20
          if(p == -1)
          {
-            appendOutput("---LemonCaml error--- Unterminated tree: not drawn\n", Qt::red);
+            appendOutput(tr("---LemonCaml error--- Unterminated tree: not drawn\n"), Qt::red);
             stdOut = stdOut.mid(j + 17);  
          }
          else
@@ -464,10 +496,10 @@ void CamlDevWindow::interruptCaml()
       kill(camlProcess->pid(), SIGINT);
 #else
    
-appendOutput("\n\nWARNING: The \"Interrupt Caml\" command is not available under Windows.\n\
+appendOutput(tr("\n\nWARNING: The \"Interrupt Caml\" command is not available under Windows.\n\
 It will not be available until QProcess handles process group IDs (let's say, never). More info at:\n\
 http://stackoverflow.com/questions/22255851/sending-ctrlc-event-to-a-process-launched-using-qprocess-on-windows\n\n\
-Please use \"Stop Caml\" instead, then send your code back to Caml.\n", Qt::red);
+Please use \"Stop Caml\" instead, then send your code back to Caml.\n"), Qt::red);
 #endif
 
    }
@@ -477,7 +509,7 @@ Please use \"Stop Caml\" instead, then send your code back to Caml.\n", Qt::red)
 
 bool CamlDevWindow::saveAs()
 {
-   QString fileName = QFileDialog::getSaveFileName(this,"Save As...","","Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)");
+   QString fileName = QFileDialog::getSaveFileName(this,tr("Save As..."),"",tr("Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)"));
    if(fileName.isEmpty())
    {
       return false;
@@ -502,7 +534,7 @@ bool CamlDevWindow::saveFile(QString file)
    QFile f(file);
    if(!f.open(QFile::WriteOnly))
    {
-      QMessageBox::warning(this,"Warning","Unable to save file !!");
+      QMessageBox::warning(this,tr("Warning"),tr("Unable to save file !!"));
       return false;
    }
    //QTextCodec *codec = QTextCodec::codecForName("UTF-8");
@@ -517,7 +549,7 @@ bool CamlDevWindow::saveFile(QString file)
 
 void CamlDevWindow::open()
 {
-   QString fileName = QFileDialog::getOpenFileName(this,"Open","","Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)");
+   QString fileName = QFileDialog::getOpenFileName(this,tr("Open"),"",tr("Caml source files (*.ml *.mli);;Text files (*.txt);;All files(*)"));
          
    if(!fileName.isEmpty())
    {
@@ -534,7 +566,7 @@ void CamlDevWindow::openFile(QString file)
    QFile f(file);
    if(!f.open(QFile::ReadOnly))
    {
-      QMessageBox::warning(this,"Warning","Unable to open file " + file + "!");
+      QMessageBox::warning(this,tr("Warning"),tr("Unable to open file ") + file + "!");
       return;
    }
    //QString curFile = currentFile;
@@ -602,7 +634,7 @@ bool CamlDevWindow::exitCurrentFile()
    if(!unsavedChanges) return true;
    else
    {
-      int btn = QMessageBox::question(this,"Save changes before closing?","Your changes have not been saved! Would you like to do that now?",QMessageBox::Save,QMessageBox::Discard,QMessageBox::Cancel);
+      int btn = QMessageBox::question(this,tr("Save changes before closing?"),tr("Your changes have not been saved! Would you like to do that now?"),QMessageBox::Save,QMessageBox::Discard,QMessageBox::Cancel);
       bool ret = false;
       switch(btn)
       {
@@ -685,15 +717,15 @@ void CamlDevWindow::zoomOut()
 
 void CamlDevWindow::about()
 {
-   QMessageBox::about(this, "About LemonCaml", "<b>This is LemonCaml, (c) 2012-2014 Corentin FERRY.</b><br />\
+   QMessageBox::about(this, tr("About LemonCaml"), tr("<b>This is LemonCaml, (c) 2012-2015 Corentin FERRY.</b><br />\
    LemonCaml is a simple, basic-featured Caml development environment.<br />\
-   It is released under the GPLv3 license; see COPYING for details.");
+   It is released under the GPLv3 license; see COPYING for details."));
    
 }
 
 void CamlDevWindow::aboutQt()
 {
-   QMessageBox::aboutQt(this, "About Qt");
+   QMessageBox::aboutQt(this, tr("About Qt"));
 }
 
 void CamlDevWindow::resizeEvent(QResizeEvent *event)
@@ -729,7 +761,7 @@ void CamlDevWindow::generateRecentMenu()
    this->recentFiles = new QString[numRecentFiles];
    for(int i = 0; i < numRecentFiles; i++)
    {
-      recent[i] = new QAction("(empty)", this);
+      recent[i] = new QAction(tr("(empty)"), this);
       this->menuRecent->addAction(recent[i]);
    }
 }
@@ -783,7 +815,7 @@ void CamlDevWindow::updateRecent()
    for(int i = 0; i < numRecentFiles; i++)
    {
       if(recentFiles[i] != "") recent[i]->setText(recentFiles[i]);
-      else recent[i]->setText("(empty)");
+      else recent[i]->setText(tr("(empty)"));
       settings->setValue("Recent/file" + QString(i), recentFiles[i]);
    }
    
@@ -795,7 +827,7 @@ void CamlDevWindow::openRecent()
    if(sender())
    {
       QAction* snd = (QAction*) sender();
-      if(snd->text() != "(empty)")
+      if(snd->text() != tr("(empty)"))
          openFile(snd->text());
    }
 }
@@ -813,12 +845,12 @@ void CamlDevWindow::toggleAutoIndentOn(bool doIndent)
    settings->setValue("Input/indentOnFly",(doIndent?1:0));
    if(doIndent)
    {
-      QMessageBox::information(this, "Info", "You have enabled the 'Indent-as-you-type' function.\n\
+      QMessageBox::information(this, tr("Info"), tr("You have enabled the 'Indent-as-you-type' function.\n\
 Whenever a block should be unindented, LemonCaml will automatically handle the unindent for you, like on the following example:\n\
 while true do\n   print_int 1;\n   done\n\
 will become:\n\
 while true do\n   print_int 1;\ndone\n\
-upon pressing Enter after entering the 'done' keyword.");
+upon pressing Enter after entering the 'done' keyword."));
    }
 }
 
@@ -842,7 +874,7 @@ void CamlDevWindow::processCommandList(QStringList *commands)
       }
       else
       {
-         appendOutput("---LemonCaml error--- Unknown command: " + commands->takeFirst() + "\n", Qt::red);
+         appendOutput(tr("---LemonCaml error--- Unknown command: ") + commands->takeFirst() + "\n", Qt::red);
       }
 
    }
@@ -884,7 +916,7 @@ void CamlDevWindow::processSubstituteTree(QStringList *commands)
          i++;
       }
       if(!found)
-         appendOutput("---LemonCaml error--- Unknown variable: " + arg, Qt::red);
+         appendOutput(tr("---LemonCaml error--- Unknown variable: ") + arg, Qt::red);
       
       //appendOutput(subs, Qt::blue);
       camlProcess->write(subs.toLatin1());
@@ -968,4 +1000,16 @@ void CamlDevWindow::unindent()
    inputZone->setTextCursor(cursor);
    
    inputZone->insertPlainText(line);
+}
+
+void CamlDevWindow::triggerFindReplace(bool show)
+{
+   this->find->setVisible(show);
+   if(show)
+      find->takeFocus();
+   else
+      inputZone->setFocus(Qt::PopupFocusReason);
+   
+   if(this->actionFind->isChecked() != show)
+      this->actionFind->setChecked(show);
 }
