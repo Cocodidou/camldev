@@ -48,7 +48,7 @@ fi
 
 # Extract them and apply the patch
 tar -xf ./cl75unix.tar.gz >> ./log.txt 2>&1
-unzip ./$PATCHJM.zip >> ../log.txt 2>&1
+unzip ./$PATCHJM.zip >> ./log.txt 2>&1
 cd $PATCHJM
 tar -xf ./dif.tar.gz >> ../log.txt 2>&1
 cd ..
