@@ -310,17 +310,18 @@ CamlDevWindow::~CamlDevWindow()
 bool CamlDevWindow::startCamlProcess()
 {
    /* Start the Caml process */
-   #ifdef WIN32
-   QString args = settings->value("General/camlArgs", (globalSettings->value("General/camlArgs", "-stdlib ./caml/lib").toString())).toString();
+#ifdef WIN32
+   QString curPath = QDir::toNativeSeparators(QDir::currentPath() + QDir::separator());
+   QString args = settings->value("General/camlArgs", (globalSettings->value("General/camlArgs", "-stdlib \"" + curPath + "\\caml\\lib\"").toString())).toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
-   QString camlProcessPath = settings->value("General/camlPath",(globalSettings->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString())).toString();
+   QString camlProcessPath = settings->value("General/camlPath",(globalSettings->value("General/camlPath", "\"" + curPath + "\\caml\\CamlLightToplevel.exe\"").toString())).toString();
    camlProcess->start(camlProcessPath + " " + args);
-   #else
+#else
    QString args = settings->value("General/camlArgs", (globalSettings->value("General/camlArgs", "-stdlib ./caml/lib").toString())).toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
    QString camlProcessPath = settings->value("General/camlPath",(globalSettings->value("General/camlPath", "./caml/CamlLightToplevel").toString())).toString();
    camlProcess->start(camlProcessPath + " " + args);
-   #endif
+#endif
    return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
 }
 
