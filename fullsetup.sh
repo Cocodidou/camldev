@@ -21,6 +21,7 @@ if [ $? == 0 ]; then
       sudo cp -rf ./caml $DESTDIR
       sudo cp ./keywords $DESTDIR
       sudo cp ./lemoncaml_*.qm $DESTDIR
+      sudo cp -rf ./gentree $DESTDIR
       sudo mkdir /etc/xdg/Cocodidou
       echo "[%General]" > ./LemonCaml.conf
       echo "camlPath=$DESTDIR/caml/CamlLightToplevel" >> ./LemonCaml.conf
