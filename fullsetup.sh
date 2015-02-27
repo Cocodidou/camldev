@@ -28,7 +28,7 @@ if [ $? == 0 ]; then
       echo "keywordspath=$DESTDIR/keywords" >> ./LemonCaml.conf
       echo "camlArgs= -stdlib \"$DESTDIR/caml/lib\"" >> ./LemonCaml.conf
       echo "treeModelsPath=$DESTDIR/gentree" >> ./LemonCaml.conf
-      echo "setupPath=$DESTDIR" >> ./LemonCaml.conf
+      echo "setupPath=$DESTDIR/" >> ./LemonCaml.conf
       sudo cp ./LemonCaml.conf /etc/xdg/Cocodidou
       echo "A little bit of cleaning..."
       make clean >> ./log.txt 2>&1
