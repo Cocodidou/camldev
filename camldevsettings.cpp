@@ -16,19 +16,19 @@
 
 #include "camldevsettings.h"
 
-CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set) :
+CamlDevSettings::CamlDevSettings(QWidget *parent, QSettings *set, QSettings *globalset) :
     QDialog(parent)
 {
   this->setWindowTitle("LemonCaml settings");
   this->settings = set;
 #ifdef WIN32
-  QString camlPath = settings->value("General/camlPath","./caml/CamlLightToplevel.exe").toString();
+  QString camlPath = settings->value("General/camlPath",(globalset->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString())).toString();
 #else
-  QString camlPath = settings->value("General/camlPath","./caml/CamlLightToplevel").toString();
+  QString camlPath = settings->value("General/camlPath",(globalset->value("General/camlPath", "./caml/CamlLightToplevel").toString())).toString();
 #endif
-  QString camlArgs = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
-  QString kwfilePath = settings->value("General/keywordspath", "./keywords").toString();
-  QString treeModelsPath = settings->value("General/treeModelsPath","./gentree/").toString();
+  QString camlArgs = settings->value("General/camlArgs", (globalset->value("General/camlArgs", "-stdlib ./caml/lib").toString())).toString();
+  QString kwfilePath = settings->value("General/keywordspath", (globalset->value("General/keywordspath", "./keywords").toString())).toString();
+  QString treeModelsPath = settings->value("General/treeModelsPath",(globalset->value("General/treeModelsPath", "./gentree/").toString())).toString();
   bool drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
   
   this->mainLayout = new QVBoxLayout;

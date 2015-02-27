@@ -38,7 +38,7 @@ class CamlDevSettings : public QDialog
 {
     Q_OBJECT
 public:
-    explicit CamlDevSettings(QWidget *parent = 0, QSettings* set = NULL);
+    explicit CamlDevSettings(QWidget *parent = 0, QSettings* set = NULL, QSettings *globalset = NULL);
     
     
 private:

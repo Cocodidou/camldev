@@ -21,9 +21,11 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QTranslator translator;
 
+    QSettings global(QSettings::SystemScope, "Cocodidou", "LemonCaml");
+    QString translationsPath = global.value("General/setupPath","./").toString();
     QString locale = QLocale::system().name().section('_', 0, 0);
     
-    translator.load("lemoncaml_" + locale);
+    translator.load(translationsPath + "lemoncaml_" + locale);
 
     a.installTranslator(&translator);
     

@@ -104,6 +104,7 @@ private:
    QMenu *menuRecent;
    QProcess *camlProcess;
    QSettings *settings;
+   QSettings *globalSettings;
    QPrinter *printer;
    highlighter *hilit;
    QString cwd;

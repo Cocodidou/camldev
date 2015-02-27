@@ -31,6 +31,7 @@ QMainWindow(parent)
    this->setWindowIcon(QIcon(":/progicon.png"));
    
    this->settings = new QSettings("Cocodidou", "LemonCaml");
+   this->globalSettings = new QSettings(QSettings::SystemScope, "Cocodidou", "LemonCaml");
    
    /* The main window elements : two text-areas and a splitter */
    this->centralBox = new QVBoxLayout();
@@ -45,7 +46,7 @@ QMainWindow(parent)
    this->setWindowFlags( (windowFlags() | Qt::CustomizeWindowHint));
    
 #ifndef WIN32
-   QString defaultFont = "";
+   QString defaultFont = "Andale Mono,10,-1,5,50,0,0,0,0,0";
 #else
    QString defaultFont = "Courier New,10,-1,5,50,0,0,0,0,0";
 #endif
@@ -59,7 +60,7 @@ QMainWindow(parent)
    this->outputZone->setReadOnly(true);
    this->outputZone->setTabStopWidth(20);
    
-   QString kwfileloc = settings->value("General/keywordspath", "./keywords").toString();
+   QString kwfileloc = settings->value("General/keywordspath", (globalSettings->value("General/keywordspath", "./keywords").toString())).toString();
    
    QFile kwfile(kwfileloc);
    QStringList kwds;
@@ -310,14 +311,14 @@ bool CamlDevWindow::startCamlProcess()
 {
    /* Start the Caml process */
    #ifdef WIN32
-   QString args = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
+   QString args = settings->value("General/camlArgs", (globalSettings->value("General/camlArgs", "-stdlib ./caml/lib").toString())).toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
-   QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString();
+   QString camlProcessPath = settings->value("General/camlPath",(globalSettings->value("General/camlPath", "./caml/CamlLightToplevel.exe").toString())).toString();
    camlProcess->start(camlProcessPath + " " + args);
    #else
-   QString args = settings->value("General/camlArgs", "-stdlib ./caml/lib").toString();
+   QString args = settings->value("General/camlArgs", (globalSettings->value("General/camlArgs", "-stdlib ./caml/lib").toString())).toString();
    //camlProcess->setWorkingDirectory(camlLibPath);
-   QString camlProcessPath = settings->value("General/camlPath", "./caml/CamlLightToplevel").toString();
+   QString camlProcessPath = settings->value("General/camlPath",(globalSettings->value("General/camlPath", "./caml/CamlLightToplevel").toString())).toString();
    camlProcess->start(camlProcessPath + " " + args);
    #endif
    return (camlProcess->state() == QProcess::Starting || camlProcess->state() == QProcess::Running);
@@ -688,7 +689,7 @@ void CamlDevWindow::doPrint()
 
 void CamlDevWindow::showSettings()
 {
-   CamlDevSettings s(this, this->settings);
+   CamlDevSettings s(this, this->settings, this->globalSettings);
    s.exec();
    this->drawTrees = (settings->value("General/drawTrees",0).toInt() == 1)?true:false;
    this->generateRecentMenu();
@@ -947,7 +948,7 @@ void CamlDevWindow::processRegisterTreeType(QStringList *commands)
             this->treevalues << reg[1];
          }
       }
-      QString MLLoc = settings->value("General/treeModelsPath","./gentree/").toString();
+      QString MLLoc = settings->value("General/treeModelsPath",(globalSettings->value("General/treeModelsPath", "./gentree/").toString())).toString();
       this->autoLoadML(MLLoc + treetype + ".ml"); //load the ML file that auto-registers the tree type
    }
 }
