@@ -98,7 +98,7 @@ void highlighter::highlightBlock(const QString &text)
                   setFormat(pos, 1, m_formats[String]);
                   ++pos;
                   break;
-               } else if (text.at(pos) == '#') {
+               } else if (pos == 0 && text.at(pos) == '#') {
                   state = InPreprocessor;
                   setFormat(pos, 1, m_formats[Preprocessor]);
                   ++pos;
